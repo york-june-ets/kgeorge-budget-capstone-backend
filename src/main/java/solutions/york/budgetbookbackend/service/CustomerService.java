@@ -1,0 +1,46 @@
+package solutions.york.budgetbookbackend.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import solutions.york.budgetbookbackend.dto.auth.LoginRequest;
+import solutions.york.budgetbookbackend.dto.customer.CustomerRequest;
+import solutions.york.budgetbookbackend.dto.customer.CustomerResponse;
+import solutions.york.budgetbookbackend.model.Customer;
+import solutions.york.budgetbookbackend.repository.CustomerRepository;
+
+@Service
+public class CustomerService {
+    private final CustomerRepository customerRepository;
+
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
+
+    public void validateCustomerRequest(CustomerRequest request) {
+        if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
+        if (request.getFirstName() == null) {throw new IllegalArgumentException("First name cannot be null");}
+        if (request.getLastName() == null) {throw new IllegalArgumentException("Last name cannot be null");}
+        if (request.getEmail() == null) {throw new IllegalArgumentException("Email cannot be null");}
+        if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
+    }
+
+    public void validateLoginRequest(LoginRequest request) {
+        if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
+        if (request.getEmail() == null) {throw new IllegalArgumentException("Email cannot be null");}
+        if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
+    }
+
+    public CustomerResponse createCustomer(@RequestBody CustomerRequest request) {
+        validateCustomerRequest(request);
+        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {throw new IllegalArgumentException("Email already exists");}
+        Customer customer = customerRepository.save(new Customer(request));
+        return new CustomerResponse(customer);
+    }
+
+    public CustomerResponse authenticateCustomer(@RequestBody LoginRequest request) {
+        validateLoginRequest(request);
+        Customer customer = customerRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Email not found"));
+        return new CustomerResponse(customer);
+    }
+
+}
