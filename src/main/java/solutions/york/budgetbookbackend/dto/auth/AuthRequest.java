@@ -1,6 +1,6 @@
 package solutions.york.budgetbookbackend.dto.auth;
 
-public class LoginRequest {
+public class AuthRequest {
     private String email;
     private String password;
 

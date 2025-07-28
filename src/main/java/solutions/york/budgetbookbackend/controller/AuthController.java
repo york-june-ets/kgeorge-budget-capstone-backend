@@ -1,26 +1,30 @@
 package solutions.york.budgetbookbackend.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import solutions.york.budgetbookbackend.dto.auth.LoginRequest;
+import org.springframework.web.bind.annotation.*;
+import solutions.york.budgetbookbackend.dto.auth.AuthRequest;
+import solutions.york.budgetbookbackend.dto.auth.AuthResponse;
 import solutions.york.budgetbookbackend.dto.customer.CustomerResponse;
-import solutions.york.budgetbookbackend.service.CustomerService;
+import solutions.york.budgetbookbackend.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final CustomerService customerService;
+    private final AuthService authService;
 
-    public AuthController(CustomerService customerService) {
-        this.customerService = customerService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<CustomerResponse> authenticateCustomer(@RequestBody LoginRequest request) {
-        CustomerResponse customer = customerService.authenticateCustomer(request);
-        return ResponseEntity.ok(customer);
+    public ResponseEntity<AuthResponse> authenticateCustomer(@RequestBody AuthRequest request) {
+        AuthResponse authData = authService.authenticateCustomer(request);
+        return ResponseEntity.ok(authData);
+    }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<String> endSession(@RequestHeader("Authorization") String token) {
+        authService.endSession(token);
+        return ResponseEntity.ok("Session ended");
     }
 }

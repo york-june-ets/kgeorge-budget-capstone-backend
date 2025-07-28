@@ -2,7 +2,6 @@ package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
-import solutions.york.budgetbookbackend.dto.auth.LoginRequest;
 import solutions.york.budgetbookbackend.dto.customer.CustomerRequest;
 import solutions.york.budgetbookbackend.dto.customer.CustomerResponse;
 import solutions.york.budgetbookbackend.model.Customer;
@@ -24,12 +23,6 @@ public class CustomerService {
         if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
     }
 
-    public void validateLoginRequest(LoginRequest request) {
-        if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
-        if (request.getEmail() == null) {throw new IllegalArgumentException("Email cannot be null");}
-        if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
-    }
-
     public CustomerResponse createCustomer(@RequestBody CustomerRequest request) {
         validateCustomerRequest(request);
         if (customerRepository.findByEmail(request.getEmail()).isPresent()) {throw new IllegalArgumentException("Email already exists");}
@@ -37,10 +30,8 @@ public class CustomerService {
         return new CustomerResponse(customer);
     }
 
-    public CustomerResponse authenticateCustomer(@RequestBody LoginRequest request) {
-        validateLoginRequest(request);
-        Customer customer = customerRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Email not found"));
-        return new CustomerResponse(customer);
+    public Customer findByEmail(String email) {
+        return customerRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Email not found"));
     }
 
 }
