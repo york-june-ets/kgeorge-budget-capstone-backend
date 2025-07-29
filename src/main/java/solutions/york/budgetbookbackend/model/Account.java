@@ -16,14 +16,18 @@ public class Account {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Type type;
 
+    @Column(nullable = false)
+    private double balance;
+
     public Account() {}
-    public Account(Customer customer, String name, Type type) {
+    public Account(Customer customer, String name, Type type, double balance) {
         this.customer = customer;
         this.name = name;
         this.type = type;
+        this.balance = balance;
     }
 
     // GETTERS
@@ -39,6 +43,9 @@ public class Account {
     public Type getType() {
         return type;
     }
+    public double getBalance() {
+        return balance;
+    }
 
     // SETTERS
     public void setId(Long id) {
@@ -52,5 +59,8 @@ public class Account {
     }
     public void setType(Type type) {
         this.type = type;
+    }
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 }

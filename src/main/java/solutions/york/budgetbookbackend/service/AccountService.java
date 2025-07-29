@@ -26,19 +26,31 @@ public class AccountService {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
         if (request.getName() == null || request.getName().isBlank()) {throw new IllegalArgumentException("Name cannot be null");}
         if (request.getType() == null || request.getType().isBlank()) {throw new IllegalArgumentException("Type cannot be null");}
+        if (request.getBalance() == null || request.getBalance().isBlank()) {throw new IllegalArgumentException("Balance cannot be null");}
+    }
+
+    public Account.Type validateAccountType(String type) {
+        try {
+            return Account.Type.valueOf(type);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid account type");
+        }
+    }
+
+    public double validateBalance(String balance) {
+        try {
+            return Double.parseDouble(balance);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Balance is not a number");
+        }
     }
 
     public AccountResponse createAccount(@RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
         validateAccountRequest(request);
-
-        Account.Type accountType = null;
-        try {
-            accountType = Account.Type.valueOf(request.getType());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Invalid account type");
-        }
         Auth auth = authService.validateToken(token);
-        Account account = new Account(auth.getCustomer(), request.getName(), accountType);
+        Account.Type accountType = validateAccountType(request.getType());
+        double balance = validateBalance(request.getBalance());
+        Account account = new Account(auth.getCustomer(), request.getName(), accountType, balance);
         accountRepository.save(account);
         return new AccountResponse(account);
     }
