@@ -13,7 +13,7 @@ public class Auth {
     @Column(nullable = false)
     private String token;
 
-    @OneToOne
+    @ManyToOne
     private Customer customer;
 
     @Column(nullable = false)
