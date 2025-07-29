@@ -23,10 +23,25 @@ public class AuthService {
         this.customerService = customerService;
     }
 
+    public Auth validateToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Auth auth = authRepository.findByToken(token);
+        if (auth != null) {
+            if (auth.getExpiredAt() != null && auth.getExpiredAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Session has expired");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid token");
+        }
+        return auth;
+    }
+
     public void validateAuthRequest(AuthRequest request) {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
-        if (request.getEmail() == null) {throw new IllegalArgumentException("Email cannot be null");}
-        if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
+        if (request.getEmail() == null || request.getEmail().isBlank()) {throw new IllegalArgumentException("Email cannot be null");}
+        if (request.getPassword() == null || request.getPassword().isBlank()) {throw new IllegalArgumentException("Password cannot be null");}
     }
 
     public AuthResponse authenticateCustomer(@RequestBody AuthRequest request) {

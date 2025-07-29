@@ -17,10 +17,10 @@ public class CustomerService {
 
     public void validateCustomerRequest(CustomerRequest request) {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
-        if (request.getFirstName() == null) {throw new IllegalArgumentException("First name cannot be null");}
-        if (request.getLastName() == null) {throw new IllegalArgumentException("Last name cannot be null");}
-        if (request.getEmail() == null) {throw new IllegalArgumentException("Email cannot be null");}
-        if (request.getPassword() == null) {throw new IllegalArgumentException("Password cannot be null");}
+        if (request.getFirstName() == null || request.getFirstName().isBlank()) {throw new IllegalArgumentException("First name cannot be null");}
+        if (request.getLastName() == null || request.getLastName().isBlank()) {throw new IllegalArgumentException("Last name cannot be null");}
+        if (request.getEmail() == null || request.getEmail().isBlank()) {throw new IllegalArgumentException("Email cannot be null");}
+        if (request.getPassword() == null || request.getPassword().isBlank()) {throw new IllegalArgumentException("Password cannot be null");}
     }
 
     public CustomerResponse createCustomer(@RequestBody CustomerRequest request) {
