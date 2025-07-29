@@ -22,7 +22,7 @@ public class AuthController {
         return ResponseEntity.ok(authData);
     }
 
-    @DeleteMapping("/logout")
+    @PutMapping("/logout")
     public ResponseEntity<String> endSession(@RequestHeader("Authorization") String token) {
         authService.endSession(token);
         return ResponseEntity.ok("Session ended");

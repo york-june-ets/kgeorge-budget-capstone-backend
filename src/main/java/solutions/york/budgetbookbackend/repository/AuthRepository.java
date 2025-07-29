@@ -6,5 +6,5 @@ import solutions.york.budgetbookbackend.model.Auth;
 
 public interface AuthRepository extends JpaRepository<Auth, Long> {
     @Transactional
-    void deleteByToken(String token);
+    Auth findByToken(String token);
 }

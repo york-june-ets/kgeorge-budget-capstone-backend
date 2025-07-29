@@ -10,6 +10,7 @@ import solutions.york.budgetbookbackend.model.Auth;
 import solutions.york.budgetbookbackend.model.Customer;
 import solutions.york.budgetbookbackend.repository.AuthRepository;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -40,6 +41,10 @@ public class AuthService {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        authRepository.deleteByToken(token);
+        Auth auth = authRepository.findByToken(token);
+        if (auth != null) {
+            auth.setExpiredAt(LocalDateTime.now());
+            authRepository.save(auth);
+        }
     }
 }
