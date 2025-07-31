@@ -28,13 +28,13 @@ public class Customer {
     private Boolean archived;
 
     public Customer() {}
-    public Customer(String firstName, String lastName, String email, String phoneNumber, String password) {
+    public Customer(String firstName, String lastName, String email, String phoneNumber, String password, Boolean archived) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.password = password;
-        this.archived = false;
+        this.archived = archived;
     }
     public Customer(CustomerRequest request) {
         this.firstName = request.getFirstName();
@@ -42,6 +42,15 @@ public class Customer {
         this.email = request.getEmail();
         this.phoneNumber = request.getPhoneNumber();
         this.password = request.getPassword();
+        this.archived = false;
+    }
+    public void update(CustomerRequest request)  {
+        this.firstName = request.getFirstName();
+        this.lastName = request.getLastName();
+        this.email = request.getEmail();
+        this.phoneNumber = request.getPhoneNumber();
+        this.password = request.getPassword();
+        this.archived = false;
     }
 
     // GETTERS

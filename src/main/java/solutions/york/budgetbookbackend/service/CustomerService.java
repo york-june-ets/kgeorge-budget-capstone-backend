@@ -25,7 +25,16 @@ public class CustomerService {
 
     public CustomerResponse createCustomer(@RequestBody CustomerRequest request) {
         validateCustomerRequest(request);
-        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {throw new IllegalArgumentException("Email already exists");}
+        Customer existingCustomer = findByEmail(request.getEmail());
+        if (existingCustomer != null) {
+            if (existingCustomer.getArchived() == true) {
+                existingCustomer.update(request);
+                customerRepository.save(existingCustomer);
+                return new CustomerResponse(existingCustomer);
+            } else {
+                throw new IllegalArgumentException("Email is already in use");
+            }
+        }
         Customer customer = customerRepository.save(new Customer(request));
         return new CustomerResponse(customer);
     }

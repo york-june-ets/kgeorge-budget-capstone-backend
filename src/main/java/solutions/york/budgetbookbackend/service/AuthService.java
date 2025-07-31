@@ -44,7 +44,6 @@ public class AuthService {
         if (request.getPassword() == null || request.getPassword().isBlank()) {throw new IllegalArgumentException("Password cannot be null");}
     }
     public void validateCustomer(Customer customer) {
-        if (customer == null) {throw new IllegalArgumentException("Customer cannot be null");}
         if (customer.getArchived() == true) {throw new IllegalArgumentException("Customer is archived");}
     }
 
