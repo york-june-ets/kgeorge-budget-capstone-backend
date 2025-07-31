@@ -1,6 +1,7 @@
 package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.account.AccountRequest;
@@ -61,5 +62,23 @@ public class AccountService {
                 .filter(account -> !account.getArchived())
                 .map(AccountResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    public AccountResponse updateAccount(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
+        validateAccountRequest(request);
+        authService.validateToken(token);
+        validateAccountType(request.getType());
+        validateBalance(request.getBalance());
+        Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        account.update(request);
+        accountRepository.save(account);
+        return new AccountResponse(account);
+    }
+
+    public void archiveAccount(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        authService.validateToken(token);
+        Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        account.setArchived(true);
+        accountRepository.save(account);
     }
 }

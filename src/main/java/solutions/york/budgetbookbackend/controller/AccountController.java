@@ -28,4 +28,15 @@ public class AccountController {
         List<AccountResponse> accountResponses = accountService.getCustomerAccounts(token);
         return ResponseEntity.ok(accountResponses);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AccountResponse> updateAccount(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
+        AccountResponse accountResponse = accountService.updateAccount(id, token, request);
+        return ResponseEntity.ok(accountResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public void archiveAccount(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        accountService.archiveAccount(id, token);
+    }
 }

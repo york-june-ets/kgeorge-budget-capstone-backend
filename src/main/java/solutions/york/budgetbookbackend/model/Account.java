@@ -1,6 +1,7 @@
 package solutions.york.budgetbookbackend.model;
 
 import jakarta.persistence.*;
+import solutions.york.budgetbookbackend.dto.account.AccountRequest;
 
 @Entity
 public class Account {
@@ -32,6 +33,11 @@ public class Account {
         this.type = type;
         this.balance = balance;
         this.archived = false;
+    }
+    public void update(AccountRequest request) {
+        this.name = request.getName();
+        this.type = Type.valueOf(request.getType());
+        this.balance = Double.parseDouble(request.getBalance());
     }
 
     // GETTERS
