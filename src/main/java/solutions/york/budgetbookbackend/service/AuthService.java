@@ -43,10 +43,16 @@ public class AuthService {
         if (request.getEmail() == null || request.getEmail().isBlank()) {throw new IllegalArgumentException("Email cannot be null");}
         if (request.getPassword() == null || request.getPassword().isBlank()) {throw new IllegalArgumentException("Password cannot be null");}
     }
+    public void validateCustomer(Customer customer) {
+        if (customer == null) {throw new IllegalArgumentException("Customer cannot be null");}
+        if (customer.getArchived() == true) {throw new IllegalArgumentException("Customer is archived");}
+    }
 
     public AuthResponse authenticateCustomer(@RequestBody AuthRequest request) {
         validateAuthRequest(request);
         Customer customer = customerService.findByEmail(request.getEmail());
+        validateCustomer(customer);
+        if (!customer.getPassword().equals(request.getPassword())) {throw new IllegalArgumentException("Invalid credentials");}
         Auth auth = new Auth(UUID.randomUUID().toString(), customer);
         authRepository.save(auth);
         return new AuthResponse(auth.getToken(), new CustomerResponse(customer));
