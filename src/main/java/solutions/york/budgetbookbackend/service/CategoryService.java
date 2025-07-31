@@ -1,0 +1,56 @@
+package solutions.york.budgetbookbackend.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import solutions.york.budgetbookbackend.dto.account.AccountResponse;
+import solutions.york.budgetbookbackend.dto.category.CategoryRequest;
+import solutions.york.budgetbookbackend.dto.category.CategoryResponse;
+import solutions.york.budgetbookbackend.model.Auth;
+import solutions.york.budgetbookbackend.model.Category;
+import solutions.york.budgetbookbackend.repository.CategoryRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class CategoryService {
+    private final CategoryRepository categoryRepository;
+    private final AuthService authService;
+
+    public CategoryService(CategoryRepository categoryRepository, AuthService authService) {
+        this.categoryRepository = categoryRepository;
+        this.authService = authService;
+    }
+
+    public void validateCategoryRequest(CategoryRequest request) {
+        if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
+        if (request.getName() == null || request.getName().isBlank()) {throw new IllegalArgumentException("Name cannot be null");}
+    }
+
+    public CategoryResponse createCategory(@RequestHeader("Authorization") String token, @RequestBody CategoryRequest request) {
+        validateCategoryRequest(request);
+        Auth auth = authService.validateToken(token);
+        Category existingCategory = categoryRepository.findByCustomerAndName(auth.getCustomer(), request.getName()).orElse(null);
+        if (existingCategory != null) {
+            if (existingCategory.getArchived() == true) {
+                existingCategory.setArchived(false);
+                categoryRepository.save(existingCategory);
+                return new CategoryResponse(existingCategory);
+            } else {
+                throw new IllegalArgumentException("Category already exists");
+            }
+        }
+        Category category = new Category(auth.getCustomer(), request.getName());
+        categoryRepository.save(category);
+        return new CategoryResponse(category);
+    }
+
+    public List<CategoryResponse> getCustomerCategories(@RequestHeader("Authorization") String token) {
+        Auth auth = authService.validateToken(token);
+        return categoryRepository.findByCustomer(auth.getCustomer()).stream()
+                .filter(category -> !category.getArchived())
+                .map(CategoryResponse::new)
+                .collect(Collectors.toList());
+    }
+}

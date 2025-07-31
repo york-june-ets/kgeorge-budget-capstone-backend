@@ -57,6 +57,9 @@ public class AccountService {
 
     public List<AccountResponse> getCustomerAccounts(@RequestHeader("Authorization") String token) {
         Auth auth = authService.validateToken(token);
-        return accountRepository.findByCustomer(auth.getCustomer()).stream().map(AccountResponse::new).collect(Collectors.toList());
+        return accountRepository.findByCustomer(auth.getCustomer()).stream()
+                .filter(account -> !account.getArchived())
+                .map(AccountResponse::new)
+                .collect(Collectors.toList());
     }
 }

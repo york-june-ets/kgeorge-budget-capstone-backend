@@ -9,7 +9,7 @@ public class Category {
     private Long id;
 
     @ManyToOne
-    private Account account;
+    private Customer customer;
 
     @Column(unique = true, nullable = false)
     private String name;
@@ -18,7 +18,8 @@ public class Category {
     private Boolean archived;
 
     public Category() {}
-    public Category(String name) {
+    public Category(Customer customer, String name) {
+        this.customer = customer;
         this.name = name;
         this.archived = false;
     }
@@ -27,8 +28,8 @@ public class Category {
     public Long getId() {
         return id;
     }
-    public Account getAccount() {
-        return account;
+    public Customer getCustomer() {
+        return customer;
     }
     public String getName() {
         return name;
@@ -41,8 +42,8 @@ public class Category {
     public void setId(Long id) {
         this.id = id;
     }
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
     public void setName(String name) {
         this.name = name;
