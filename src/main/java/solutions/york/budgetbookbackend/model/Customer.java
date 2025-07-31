@@ -24,6 +24,9 @@ public class Customer {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private Boolean archived;
+
     public Customer() {}
     public Customer(String firstName, String lastName, String email, String phoneNumber, String password) {
         this.firstName = firstName;
@@ -31,6 +34,7 @@ public class Customer {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.password = password;
+        this.archived = false;
     }
     public Customer(CustomerRequest request) {
         this.firstName = request.getFirstName();
@@ -59,6 +63,9 @@ public class Customer {
     public String getPassword() {
         return password;
     }
+    public Boolean getArchived() {
+        return archived;
+    }
 
     // SETTERS
     public void setId(Long id) {
@@ -78,5 +85,8 @@ public class Customer {
     }
     public void setPassword(String password) {
         this.password = password;
+    }
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
     }
 }

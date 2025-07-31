@@ -22,12 +22,16 @@ public class Account {
     @Column(nullable = false)
     private double balance;
 
+    @Column(nullable = false)
+    private Boolean archived;
+
     public Account() {}
     public Account(Customer customer, String name, Type type, double balance) {
         this.customer = customer;
         this.name = name;
         this.type = type;
         this.balance = balance;
+        this.archived = false;
     }
 
     // GETTERS
@@ -46,6 +50,9 @@ public class Account {
     public double getBalance() {
         return balance;
     }
+    public Boolean getArchived() {
+        return archived;
+    }
 
     // SETTERS
     public void setId(Long id) {
@@ -62,5 +69,8 @@ public class Account {
     }
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
     }
 }
