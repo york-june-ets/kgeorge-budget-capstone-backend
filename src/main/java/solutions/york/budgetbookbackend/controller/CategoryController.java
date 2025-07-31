@@ -28,4 +28,16 @@ public class CategoryController {
         List<CategoryResponse> categoryResponses = categoryService.getCustomerCategories(token);
         return ResponseEntity.ok(categoryResponses);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody CategoryRequest request) {
+        CategoryResponse categoryResponse = categoryService.updateCategory(id, token, request);
+        return ResponseEntity.ok(categoryResponse);
+    }
+
+    @DeleteMapping
+    @RequestMapping("/{id}")
+    public void archiveCategory(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        categoryService.archiveCategory(id, token);
+    }
 }

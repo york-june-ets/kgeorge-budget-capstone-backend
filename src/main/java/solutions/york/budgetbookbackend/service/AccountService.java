@@ -30,6 +30,12 @@ public class AccountService {
         if (request.getBalance() == null || request.getBalance().isBlank()) {throw new IllegalArgumentException("Balance cannot be null");}
     }
 
+    public void validateBelongs(Account account, Auth auth) {
+        if (account.getCustomer().getId() != auth.getCustomer().getId()) {
+            throw new IllegalArgumentException("Account does not belong to customer");
+        }
+    }
+
     public Account.Type validateAccountType(String type) {
         try {
             return Account.Type.valueOf(type);
@@ -66,18 +72,20 @@ public class AccountService {
 
     public AccountResponse updateAccount(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
         validateAccountRequest(request);
-        authService.validateToken(token);
+        Auth auth = authService.validateToken(token);
         validateAccountType(request.getType());
         validateBalance(request.getBalance());
         Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        validateBelongs(account, auth);
         account.update(request);
         accountRepository.save(account);
         return new AccountResponse(account);
     }
 
     public void archiveAccount(@PathVariable Long id, @RequestHeader("Authorization") String token) {
-        authService.validateToken(token);
+        Auth auth = authService.validateToken(token);
         Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        validateBelongs(account, auth);
         account.setArchived(true);
         accountRepository.save(account);
     }

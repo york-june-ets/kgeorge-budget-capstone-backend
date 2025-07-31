@@ -1,11 +1,13 @@
 package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.account.AccountResponse;
 import solutions.york.budgetbookbackend.dto.category.CategoryRequest;
 import solutions.york.budgetbookbackend.dto.category.CategoryResponse;
+import solutions.york.budgetbookbackend.model.Account;
 import solutions.york.budgetbookbackend.model.Auth;
 import solutions.york.budgetbookbackend.model.Category;
 import solutions.york.budgetbookbackend.repository.CategoryRepository;
@@ -26,6 +28,12 @@ public class CategoryService {
     public void validateCategoryRequest(CategoryRequest request) {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
         if (request.getName() == null || request.getName().isBlank()) {throw new IllegalArgumentException("Name cannot be null");}
+    }
+
+    public void validateBelongs(Category category, Auth auth) {
+        if (category.getCustomer().getId() != auth.getCustomer().getId()) {
+            throw new IllegalArgumentException("Account does not belong to customer");
+        }
     }
 
     public CategoryResponse createCategory(@RequestHeader("Authorization") String token, @RequestBody CategoryRequest request) {
@@ -52,5 +60,23 @@ public class CategoryService {
                 .filter(category -> !category.getArchived())
                 .map(CategoryResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    public void archiveCategory(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Auth auth = authService.validateToken(token);
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Category not found"));
+        validateBelongs(category, auth);
+        category.setArchived(true);
+        categoryRepository.save(category);
+    }
+
+    public CategoryResponse updateCategory(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody CategoryRequest request) {
+        validateCategoryRequest(request);
+        Auth auth = authService.validateToken(token);
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Category not found"));
+        validateBelongs(category, auth);
+        category.setName(request.getName());
+        categoryRepository.save(category);
+        return new CategoryResponse(category);
     }
 }
