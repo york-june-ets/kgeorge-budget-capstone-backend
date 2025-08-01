@@ -33,6 +33,10 @@ public class Budget {
         this.timePeriod = timePeriod;
         this.archived = false;
     }
+    public void update(double budgetLimit, TimePeriod timePeriod) {
+        this.budgetLimit = budgetLimit;
+        this.timePeriod = timePeriod;
+    }
 
     // GETTERS
     public Long getId() {

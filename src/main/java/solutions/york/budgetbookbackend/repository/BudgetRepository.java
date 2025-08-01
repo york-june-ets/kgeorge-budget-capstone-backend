@@ -10,5 +10,5 @@ import java.util.Optional;
 
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
     public List<Budget> findByCustomer(Customer customer);
-    public Optional<Budget> findByCategory(Category category);
+    public Optional<Budget> findByCustomerAndCategory(Customer customer, Category category);
 }

@@ -1,6 +1,7 @@
 package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.budget.BudgetRequest;
@@ -38,8 +39,8 @@ public class BudgetService {
         if (category.getArchived() == true) {
             throw new IllegalArgumentException("Category is archived");
         }
-        Budget budget = budgetRepository.findByCategory(category).orElse(null);
-        if (budget != null) {
+        Budget budget = budgetRepository.findByCustomerAndCategory(customer, category).orElse(null);
+        if (budget != null && budget.getArchived() == false) {
             throw new IllegalArgumentException("Category already has a budget");
         }
         return category;
@@ -75,6 +76,17 @@ public class BudgetService {
         Category category = validateCategory(request.getCategory(), auth.getCustomer());
         Budget.TimePeriod timePeriod = validateBudgetTimePeriod(request.getTimePeriod());
         double budgetLimit = validateBudgetLimit(request.getBudgetLimit());
+        Budget existingBudget = budgetRepository.findByCustomerAndCategory(auth.getCustomer(), category).orElse(null);
+        if (existingBudget != null) {
+            if (existingBudget.getArchived() == true) {
+                existingBudget.setArchived(false);
+                existingBudget.update(budgetLimit, timePeriod);
+                budgetRepository.save(existingBudget);
+                return new BudgetResponse(existingBudget);
+            } else {
+                throw new IllegalArgumentException("Category already has a budget");
+            }
+        }
         Budget budget = new Budget(auth.getCustomer(), category, budgetLimit, timePeriod);
         budgetRepository.save(budget);
         return new BudgetResponse(budget);
@@ -86,5 +98,25 @@ public class BudgetService {
                 .filter(budget -> !budget.getArchived())
                 .map(BudgetResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    public BudgetResponse updateBudget(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody BudgetRequest request) {
+        validateBudgetRequest(request);
+        Auth auth = authService.validateToken(token);
+        Budget.TimePeriod timePeriod = validateBudgetTimePeriod(request.getTimePeriod());
+        double budgetLimit = validateBudgetLimit(request.getBudgetLimit());
+        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Budget not found"));
+        validateBelongs(budget, auth);
+        budget.update(budgetLimit, timePeriod);
+        budgetRepository.save(budget);
+        return new BudgetResponse(budget);
+    }
+
+    public void archiveBudget(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Auth auth = authService.validateToken(token);
+        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Budget not found"));
+        validateBelongs(budget, auth);
+        budget.setArchived(true);
+        budgetRepository.save(budget);
     }
 }

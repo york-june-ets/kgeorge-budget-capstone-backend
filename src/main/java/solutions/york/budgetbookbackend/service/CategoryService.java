@@ -4,13 +4,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import solutions.york.budgetbookbackend.dto.account.AccountResponse;
 import solutions.york.budgetbookbackend.dto.category.CategoryRequest;
 import solutions.york.budgetbookbackend.dto.category.CategoryResponse;
-import solutions.york.budgetbookbackend.model.Account;
 import solutions.york.budgetbookbackend.model.Auth;
+import solutions.york.budgetbookbackend.model.Budget;
 import solutions.york.budgetbookbackend.model.Category;
 import solutions.york.budgetbookbackend.model.Customer;
+import solutions.york.budgetbookbackend.repository.BudgetRepository;
 import solutions.york.budgetbookbackend.repository.CategoryRepository;
 
 import java.util.List;
@@ -20,10 +20,11 @@ import java.util.stream.Collectors;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
-
-    public CategoryService(CategoryRepository categoryRepository, AuthService authService) {
+    private final BudgetRepository budgetRepository;
+    public CategoryService(CategoryRepository categoryRepository, AuthService authService, BudgetRepository budgetRepository) {
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.budgetRepository = budgetRepository;
     }
 
     public void validateCategoryRequest(CategoryRequest request) {
@@ -68,6 +69,11 @@ public class CategoryService {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Category not found"));
         validateBelongs(category, auth);
         category.setArchived(true);
+        Budget budget = budgetRepository.findByCustomerAndCategory(auth.getCustomer(), category).orElse(null);
+        if (budget != null) {
+            budget.setArchived(true);
+            budgetRepository.save(budget);
+        }
         categoryRepository.save(category);
     }
 

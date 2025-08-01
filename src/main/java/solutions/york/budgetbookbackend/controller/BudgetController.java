@@ -28,4 +28,15 @@ public class BudgetController {
         List<BudgetResponse> budgetResponses = budgetService.getCustomerBudgets(token);
         return ResponseEntity.ok(budgetResponses);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BudgetResponse> updateBudget(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody BudgetRequest request) {
+        BudgetResponse budgetResponse = budgetService.updateBudget(id, token, request);
+        return ResponseEntity.ok(budgetResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public void archiveBudget(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        budgetService.archiveBudget(id, token);
+    }
 }
