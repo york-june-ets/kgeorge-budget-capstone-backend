@@ -10,6 +10,7 @@ import solutions.york.budgetbookbackend.dto.category.CategoryResponse;
 import solutions.york.budgetbookbackend.model.Account;
 import solutions.york.budgetbookbackend.model.Auth;
 import solutions.york.budgetbookbackend.model.Category;
+import solutions.york.budgetbookbackend.model.Customer;
 import solutions.york.budgetbookbackend.repository.CategoryRepository;
 
 import java.util.List;
@@ -78,5 +79,9 @@ public class CategoryService {
         category.setName(request.getName());
         categoryRepository.save(category);
         return new CategoryResponse(category);
+    }
+
+    public Category findByCustomerAndName(Customer customer, String name) {
+        return categoryRepository.findByCustomerAndName(customer, name).orElse(null);
     }
 }

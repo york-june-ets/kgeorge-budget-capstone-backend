@@ -11,34 +11,26 @@ public class Budget {
     private Long id;
 
     @ManyToOne
-    private Account account;
+    private Customer customer;
 
     @OneToOne
     private Category category;
 
     @Column(nullable = false)
-    private double spent;
-
-    @Column(nullable = false)
-    private double limit;
+    private double budgetLimit;
 
     @Enumerated(EnumType.STRING)
-    private TimePeriod period;
-
-    @Column(nullable = false)
-    private Boolean enabled;
+    private TimePeriod timePeriod;
 
     @Column(nullable = false)
     private Boolean archived;
 
     public Budget() {}
-    public Budget(Account account, Category category, double limit, TimePeriod period) {
-        this.account = account;
+    public Budget(Customer customer, Category category, double budgetLimit, TimePeriod timePeriod) {
+        this.customer = customer;
         this.category = category;
-        this.spent = 0;
-        this.limit = limit;
-        this.period = period;
-        this.enabled = true;
+        this.budgetLimit = budgetLimit;
+        this.timePeriod = timePeriod;
         this.archived = false;
     }
 
@@ -46,23 +38,17 @@ public class Budget {
     public Long getId() {
         return id;
     }
-    public Account getAccount() {
-        return account;
+    public Customer getCustomer() {
+        return customer;
     }
     public Category getCategory() {
         return category;
     }
-    public double getSpent() {
-        return spent;
+    public double getBudgetLimit() {
+        return budgetLimit;
     }
-    public double getLimit() {
-        return limit;
-    }
-    public TimePeriod getPeriod() {
-        return period;
-    }
-    public Boolean getEnabled() {
-        return enabled;
+    public TimePeriod getTimePeriod() {
+        return timePeriod;
     }
     public Boolean getArchived() {
         return archived;
@@ -73,28 +59,19 @@ public class Budget {
     public void setId(Long id) {
         this.id = id;
     }
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
     public void setCategory(Category category) {
         this.category = category;
     }
-    public void setSpent(double spent) {
-        this.spent = spent;
+    public void setBudgetLimit(double budgetLimit) {
+        this.budgetLimit = budgetLimit;
     }
-    public void setLimit(double limit) {
-        this.limit = limit;
-    }
-    public void setPeriod(TimePeriod period) {
-        this.period = period;
-    }
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setTimePeriod(TimePeriod timePeriod) {
+        this.timePeriod = timePeriod;
     }
     public void setArchived(Boolean archived) {
         this.archived = archived;
     }
-
-
-
 }
