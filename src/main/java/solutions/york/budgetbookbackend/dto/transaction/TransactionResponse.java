@@ -5,6 +5,7 @@ import solutions.york.budgetbookbackend.model.Transaction;
 
 public class TransactionResponse {
     private Long id;
+    private String date;
     private String description;
     private Account account;
     private String amount;
@@ -15,6 +16,7 @@ public class TransactionResponse {
     public TransactionResponse() {}
     public TransactionResponse(Transaction transaction) {
         this.id = transaction.getId();
+        this.date = transaction.getDate().toString();
         this.description = transaction.getDescription();
         this.account = transaction.getAccount();
         this.amount = transaction.getAmount() + "";
@@ -31,6 +33,9 @@ public class TransactionResponse {
     // GETTERS
     public Long getId() {
         return id;
+    }
+    public String getDate() {
+        return date;
     }
     public String getDescription() {
         return description;

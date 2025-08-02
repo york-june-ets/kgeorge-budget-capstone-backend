@@ -11,6 +11,7 @@ import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ public class TransactionService {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
         if (request.getAmount() == null || request.getAmount().isBlank()) {throw new IllegalArgumentException("Amount cannot be null");}
         if (request.getDescription() == null || request.getDescription().isBlank()) {throw new IllegalArgumentException("Description cannot be null");}
+        if (request.getDate() == null || request.getDate().isBlank()) {throw new IllegalArgumentException("Date cannot be null");}
         if (request.getAccountId() == null) {throw new IllegalArgumentException("Account ID cannot be null");}
         if (request.getTransactionType() == null || request.getTransactionType().isBlank()) {throw new IllegalArgumentException("Transaction type cannot be null");}
         if (request.getRepeatUnit().isBlank() && !request.getRepeatInterval().isBlank()) {throw new IllegalArgumentException("Repeat interval cannot be empty if repeat unit is set");}
@@ -87,6 +89,14 @@ public class TransactionService {
         }
     }
 
+    public LocalDate validateDate(String date) {
+        try {
+            return LocalDate.parse(date);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Date is not a valid date");
+        }
+    }
+
     @Transactional
     public TransactionResponse createTransaction(@RequestHeader("Authorization") String token, @RequestBody TransactionRequest request) {
         validateTransactionRequest(request);
@@ -98,8 +108,9 @@ public class TransactionService {
         Transaction.RepeatUnit repeatUnit = validateRepeatUnit(request.getRepeatUnit());
         Integer repeatInterval = validateRepeatInterval(request.getRepeatInterval());
         double amount = validateAmount(request.getAmount());
+        LocalDate date = validateDate(request.getDate());
 
-        Transaction transaction = new Transaction(customer, account, request.getDescription(), amount, transactionType, repeatUnit, repeatInterval);
+        Transaction transaction = new Transaction(customer, account, date, request.getDescription(), amount, transactionType, repeatUnit, repeatInterval);
         transactionRepository.save(transaction);
 
         if (transactionType == Transaction.Type.WITHDRAWAL) {

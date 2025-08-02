@@ -2,6 +2,8 @@ package solutions.york.budgetbookbackend.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 public class Transaction {
     public enum Type {DEPOSIT, WITHDRAWAL}
@@ -16,6 +18,9 @@ public class Transaction {
 
     @ManyToOne
     private Account account;
+
+    @Column(nullable = false)
+    private LocalDate date;
 
     @Column(nullable = false)
     private String description;
@@ -38,10 +43,11 @@ public class Transaction {
     private Boolean archived;
 
     public Transaction() {}
-    public Transaction(Customer customer, Account account, String description, double amount, Type type, RepeatUnit repeatUnit, Integer repeatInterval) {
+    public Transaction(Customer customer, Account account, LocalDate date, String description, double amount, Type type, RepeatUnit repeatUnit, Integer repeatInterval) {
         this.customer = customer;
         this.account = account;
         this.description = description;
+        this.date = date;
         this.amount = amount;
         this.type = type;
         this.repeatUnit = repeatUnit;
@@ -58,6 +64,9 @@ public class Transaction {
     }
     public Account getAccount() {
         return account;
+    }
+    public LocalDate getDate() {
+        return date;
     }
     public String getDescription() {
         return description;
@@ -87,6 +96,9 @@ public class Transaction {
     }
     public void setAccount(Account account) {
         this.account = account;
+    }
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
     public void setDescription(String description) {
         this.description = description;

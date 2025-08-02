@@ -3,6 +3,7 @@ package solutions.york.budgetbookbackend.dto.transaction;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 
 public class TransactionRequest {
+    private String date;
     private String description;
     private String amount;
     private Long accountId;
@@ -12,6 +13,9 @@ public class TransactionRequest {
     private AllocationRequest[] allocations;
 
     // GETTERS
+    public String getDate() {
+        return date;
+    }
     public String getDescription() {
         return description;
     }
