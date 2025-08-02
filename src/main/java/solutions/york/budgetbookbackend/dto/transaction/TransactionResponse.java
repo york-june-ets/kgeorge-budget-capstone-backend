@@ -1,29 +1,30 @@
 package solutions.york.budgetbookbackend.dto.transaction;
 
+import solutions.york.budgetbookbackend.model.Account;
 import solutions.york.budgetbookbackend.model.Transaction;
 
 public class TransactionResponse {
     private Long id;
     private String description;
-    private Long accountId;
+    private Account account;
     private String amount;
     private String transactionType;
     private String repeatUnit;
-    private Integer repeatInterval;
+    private String repeatInterval;
 
     public TransactionResponse() {}
     public TransactionResponse(Transaction transaction) {
         this.id = transaction.getId();
         this.description = transaction.getDescription();
-        this.accountId = transaction.getAccount().getId();
+        this.account = transaction.getAccount();
         this.amount = transaction.getAmount() + "";
         this.transactionType = transaction.getType().toString();
         if (transaction.getRepeatUnit() != null) {
             this.repeatUnit = transaction.getRepeatUnit().toString();
-            this.repeatInterval = transaction.getRepeatInterval();
+            this.repeatInterval = transaction.getRepeatInterval().toString();
         } else {
-            this.repeatUnit = null;
-            this.repeatInterval = null;
+            this.repeatUnit = "";
+            this.repeatInterval = "";
         }
     }
 
@@ -34,8 +35,8 @@ public class TransactionResponse {
     public String getDescription() {
         return description;
     }
-    public Long getAccountId() {
-        return accountId;
+    public Account getAccount() {
+        return account;
     }
     public String getAmount() {
         return amount;
@@ -46,7 +47,7 @@ public class TransactionResponse {
     public String getRepeatUnit() {
         return repeatUnit;
     }
-    public Integer getRepeatInterval() {
+    public String getRepeatInterval() {
         return repeatInterval;
     }
 

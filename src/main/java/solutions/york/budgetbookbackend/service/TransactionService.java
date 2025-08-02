@@ -5,10 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
+import solutions.york.budgetbookbackend.dto.budget.BudgetResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -88,6 +92,7 @@ public class TransactionService {
         validateTransactionRequest(request);
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
         Account account = validateAccount(request.getAccountId(), auth.getCustomer());
         Transaction.Type transactionType = validateTransactionType(request.getTransactionType());
         Transaction.RepeatUnit repeatUnit = validateRepeatUnit(request.getRepeatUnit());
@@ -111,6 +116,16 @@ public class TransactionService {
 
         accountService.updateBalance(account, transaction);
         return new TransactionResponse(transaction);
+    }
+
+    public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token) {
+        Auth auth = authService.validateToken(token);
+        Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
+        return transactionRepository.findByCustomer(customer).stream()
+                .filter(transaction -> !transaction.getArchived())
+                .map(TransactionResponse::new)
+                .collect(Collectors.toList());
     }
 
 }

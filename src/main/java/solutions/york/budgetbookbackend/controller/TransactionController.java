@@ -6,6 +6,8 @@ import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.service.TransactionService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
@@ -19,5 +21,11 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> createTransaction(@RequestHeader("Authorization") String token, @RequestBody TransactionRequest request) {
         TransactionResponse transactionResponse = transactionService.createTransaction(token, request);
         return ResponseEntity.ok(transactionResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(@RequestHeader("Authorization") String token) {
+        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token);
+        return ResponseEntity.ok(transactionResponses);
     }
 }
