@@ -14,10 +14,14 @@ public class Allocation {
     @ManyToOne
     private Category category;
 
+    @Column(nullable = false)
+    private double amount;
+
     public Allocation() {}
-    public Allocation(Transaction transaction, Category category) {
+    public Allocation(Transaction transaction, Category category, double amount) {
         this.transaction = transaction;
         this.category = category;
+        this.amount = amount;
     }
 
     // GETTERS
@@ -30,6 +34,9 @@ public class Allocation {
     public Category getCategory() {
         return category;
     }
+    public double getAmount() {
+        return amount;
+    }
 
     // SETTERS
     public void setId(Long id) {
@@ -40,5 +47,8 @@ public class Allocation {
     }
     public void setCategory(Category category) {
         this.category = category;
+    }
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 }

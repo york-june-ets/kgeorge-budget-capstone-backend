@@ -8,6 +8,8 @@ import solutions.york.budgetbookbackend.dto.account.AccountRequest;
 import solutions.york.budgetbookbackend.dto.account.AccountResponse;
 import solutions.york.budgetbookbackend.model.Account;
 import solutions.york.budgetbookbackend.model.Auth;
+import solutions.york.budgetbookbackend.model.Customer;
+import solutions.york.budgetbookbackend.model.Transaction;
 import solutions.york.budgetbookbackend.repository.AccountRepository;
 
 import java.util.List;
@@ -87,6 +89,20 @@ public class AccountService {
         Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
         validateBelongs(account, auth);
         account.setArchived(true);
+        accountRepository.save(account);
+    }
+
+    public Account findByCustomerAndId(Customer customer, Long id) {
+        return accountRepository.findByCustomerAndId(customer, id).orElse(null);
+    }
+
+    public void updateBalance(Account account, Transaction transaction) {
+        if (transaction.getType() == Transaction.Type.DEPOSIT) {
+            account.setBalance(account.getBalance() + transaction.getAmount());
+        }
+        if (transaction.getType() == Transaction.Type.WITHDRAWAL) {
+            account.setBalance(account.getBalance() - transaction.getAmount());
+        }
         accountRepository.save(account);
     }
 }
