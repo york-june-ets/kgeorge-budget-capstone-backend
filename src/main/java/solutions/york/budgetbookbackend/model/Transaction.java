@@ -54,6 +54,15 @@ public class Transaction {
         this.repeatInterval = repeatInterval;
         this.archived = false;
     }
+    public void update(LocalDate date, String description, double amount, Type type, Integer repeatInterval, RepeatUnit repeatUnit) {
+        this.date = date;
+        this.description = description;
+        this.amount = amount;
+        this.type = type;
+        this.repeatUnit = repeatUnit;
+        this.repeatInterval = repeatInterval;
+        this.archived = false;
+    }
 
     // GETTERS
     public Long getId() {

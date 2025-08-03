@@ -28,4 +28,16 @@ public class TransactionController {
         List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token);
         return ResponseEntity.ok(transactionResponses);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TransactionResponse> updateTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody TransactionRequest request) {
+        TransactionResponse transactionResponse = transactionService.updateTransaction(id, token, request);
+        return ResponseEntity.ok(transactionResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<TransactionResponse> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        TransactionResponse transactionResponse = transactionService.archiveTransaction(id, token);
+        return ResponseEntity.ok(transactionResponse);
+    }
 }

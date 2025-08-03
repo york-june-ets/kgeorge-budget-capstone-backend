@@ -2,6 +2,7 @@ package solutions.york.budgetbookbackend.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
@@ -137,6 +138,50 @@ public class TransactionService {
                 .filter(transaction -> !transaction.getArchived())
                 .map(TransactionResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public TransactionResponse updateTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token , @RequestBody TransactionRequest request) {
+        validateTransactionRequest(request);
+        Auth auth = authService.validateToken(token);
+        Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
+        Account account = validateAccount(request.getAccountId(), auth.getCustomer());
+        Transaction.Type transactionType = validateTransactionType(request.getTransactionType());
+        Transaction.RepeatUnit repeatUnit = validateRepeatUnit(request.getRepeatUnit());
+        Integer repeatInterval = validateRepeatInterval(request.getRepeatInterval());
+        double amount = validateAmount(request.getAmount());
+        LocalDate date = validateDate(request.getDate());
+
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+        transaction.update(date, request.getDescription(), amount, transactionType, repeatInterval, repeatUnit);
+        transactionRepository.save(transaction);
+        allocationService.deleteAllocations(transaction);
+        if (transactionType == Transaction.Type.WITHDRAWAL) {
+            if (request.getAllocations().length > 0) {
+                for(AllocationRequest allocationRequest : request.getAllocations()) {
+                    allocationService.createAllocation(customer,transaction, allocationRequest);
+                }
+            }
+        } else {
+            if (request.getAllocations().length > 0) {
+                throw new IllegalArgumentException("Allocations are not supported for deposit transactions");
+            }
+        }
+
+        accountService.updateBalance(account, transaction);
+        return new TransactionResponse(transaction);
+
+    }
+
+    public TransactionResponse archiveTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Auth auth = authService.validateToken(token);
+        Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+        transaction.setArchived(true);
+        transactionRepository.save(transaction);
+        return new TransactionResponse(transaction);
     }
 
 }
