@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
-import solutions.york.budgetbookbackend.dto.budget.BudgetResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.model.*;
@@ -160,6 +159,7 @@ public class TransactionService {
         LocalDate date = validateDate(request.getDate());
 
         Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+        accountService.removePreviousBalance(transaction.getAccount(), transaction);
         transaction.update(account, date, request.getDescription(), amount, transactionType, repeatInterval, repeatUnit);
         transactionRepository.save(transaction);
         allocationService.deleteAllocations(transaction);

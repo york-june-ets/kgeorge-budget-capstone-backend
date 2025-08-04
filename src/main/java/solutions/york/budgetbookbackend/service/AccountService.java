@@ -105,4 +105,14 @@ public class AccountService {
         }
         accountRepository.save(account);
     }
+
+    public void removePreviousBalance(Account account, Transaction transaction) {
+        if (transaction.getType() == Transaction.Type.DEPOSIT) {
+            account.setBalance(account.getBalance() - transaction.getAmount());
+        }
+        if (transaction.getType() == Transaction.Type.WITHDRAWAL) {
+            account.setBalance(account.getBalance() + transaction.getAmount());
+        }
+        accountRepository.save(account);
+    }
 }
