@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
+import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
 import solutions.york.budgetbookbackend.dto.budget.BudgetResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
@@ -117,7 +118,7 @@ public class TransactionService {
         if (transactionType == Transaction.Type.WITHDRAWAL) {
             if (request.getAllocations().length > 0) {
                 for(AllocationRequest allocationRequest : request.getAllocations()) {
-                    allocationService.createAllocation(customer,transaction, allocationRequest);
+                    AllocationResponse allocationResponse = allocationService.createAllocation(customer,transaction, allocationRequest);
                 }
             }
         } else {
@@ -127,16 +128,21 @@ public class TransactionService {
         }
 
         accountService.updateBalance(account, transaction);
-        return new TransactionResponse(transaction);
+        List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+        return new TransactionResponse(transaction, allocationResponses);
     }
 
     public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
-        return transactionRepository.findByCustomer(customer).stream()
+        List<Transaction> transactions = transactionRepository.findByCustomer(customer);
+        return transactions.stream()
                 .filter(transaction -> !transaction.getArchived())
-                .map(TransactionResponse::new)
+                .map(transaction -> {
+                        List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+                        return new TransactionResponse(transaction, allocationResponses);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -154,7 +160,7 @@ public class TransactionService {
         LocalDate date = validateDate(request.getDate());
 
         Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
-        transaction.update(date, request.getDescription(), amount, transactionType, repeatInterval, repeatUnit);
+        transaction.update(account, date, request.getDescription(), amount, transactionType, repeatInterval, repeatUnit);
         transactionRepository.save(transaction);
         allocationService.deleteAllocations(transaction);
         if (transactionType == Transaction.Type.WITHDRAWAL) {
@@ -170,7 +176,8 @@ public class TransactionService {
         }
 
         accountService.updateBalance(account, transaction);
-        return new TransactionResponse(transaction);
+        List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(id, token);
+        return new TransactionResponse(transaction, allocationResponses);
 
     }
 
@@ -181,7 +188,8 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
         transaction.setArchived(true);
         transactionRepository.save(transaction);
-        return new TransactionResponse(transaction);
+        List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(id, token);
+        return new TransactionResponse(transaction, allocationResponses);
     }
 
 }

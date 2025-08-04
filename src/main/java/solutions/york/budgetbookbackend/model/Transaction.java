@@ -54,7 +54,8 @@ public class Transaction {
         this.repeatInterval = repeatInterval;
         this.archived = false;
     }
-    public void update(LocalDate date, String description, double amount, Type type, Integer repeatInterval, RepeatUnit repeatUnit) {
+    public void update(Account account, LocalDate date, String description, double amount, Type type, Integer repeatInterval, RepeatUnit repeatUnit) {
+        this.account = account;
         this.date = date;
         this.description = description;
         this.amount = amount;
