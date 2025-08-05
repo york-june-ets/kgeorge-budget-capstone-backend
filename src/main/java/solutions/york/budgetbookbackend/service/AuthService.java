@@ -1,6 +1,7 @@
 package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.auth.AuthRequest;
@@ -55,6 +56,20 @@ public class AuthService {
         Auth auth = new Auth(UUID.randomUUID().toString(), customer);
         authRepository.save(auth);
         return new AuthResponse(auth.getToken(), new CustomerResponse(customer));
+    }
+
+    public AuthResponse startSession(@RequestHeader("Authorization") String token) {
+        // ending current session
+        Auth existingAuth = validateToken(token);
+        Customer customer = existingAuth.getCustomer();
+        validateCustomer(customer);
+        existingAuth.setExpiredAt(LocalDateTime.now());
+        authRepository.save(existingAuth);
+        // new session
+        Auth auth = new Auth(UUID.randomUUID().toString(), customer);
+        authRepository.save(auth);
+        return new AuthResponse(auth.getToken(), new CustomerResponse(customer));
+
     }
 
     public void endSession(@RequestHeader("Authorization") String token) {

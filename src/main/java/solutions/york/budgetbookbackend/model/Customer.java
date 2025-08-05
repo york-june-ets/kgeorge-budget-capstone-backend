@@ -49,7 +49,9 @@ public class Customer {
         this.lastName = request.getLastName();
         this.email = request.getEmail();
         this.phoneNumber = request.getPhoneNumber();
-        this.password = request.getPassword();
+        if (request.getPassword() != null) {
+            this.password = request.getPassword();
+        }
         this.archived = false;
     }
 

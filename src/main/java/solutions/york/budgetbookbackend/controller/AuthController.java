@@ -27,4 +27,10 @@ public class AuthController {
         authService.endSession(token);
         return ResponseEntity.ok("Session ended");
     }
+
+    @PostMapping
+    public ResponseEntity<AuthResponse> startSession(@RequestHeader("Authorization") String token) {
+        AuthResponse authData = authService.startSession(token);
+        return ResponseEntity.ok(authData);
+    }
 }

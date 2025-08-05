@@ -2,21 +2,28 @@ package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.customer.CustomerRequest;
 import solutions.york.budgetbookbackend.dto.customer.CustomerResponse;
+import solutions.york.budgetbookbackend.model.Auth;
 import solutions.york.budgetbookbackend.model.Category;
 import solutions.york.budgetbookbackend.model.Customer;
+import solutions.york.budgetbookbackend.repository.AuthRepository;
 import solutions.york.budgetbookbackend.repository.CategoryRepository;
 import solutions.york.budgetbookbackend.repository.CustomerRepository;
+
+import java.time.LocalDateTime;
 
 @Service
 public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CategoryRepository categoryRepository;
+    private final AuthRepository authRepository;
 
-    public CustomerService(CustomerRepository customerRepository, CategoryRepository categoryRepository) {
+    public CustomerService(CustomerRepository customerRepository, CategoryRepository categoryRepository, AuthRepository authRepository) {
         this.customerRepository = customerRepository;
         this.categoryRepository = categoryRepository;
+        this.authRepository = authRepository;
     }
 
     public void validateCustomerRequest(CustomerRequest request) {
@@ -41,6 +48,29 @@ public class CustomerService {
         }
         Customer customer = customerRepository.save(new Customer(request));
         createDefaultCategories(customer);
+        return new CustomerResponse(customer);
+    }
+
+    public Auth validateToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Auth auth = authRepository.findByToken(token);
+        if (auth != null) {
+            if (auth.getExpiredAt() != null && auth.getExpiredAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Session has expired");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid token");
+        }
+        return auth;
+    }
+
+    public CustomerResponse updateCustomer(@RequestHeader("Authorization") String token, @RequestBody CustomerRequest request) {
+        Auth auth = validateToken(token);
+        Customer customer = customerRepository.findById(auth.getCustomer().getId()).orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+        customer.update(request);
+        customerRepository.save(customer);
         return new CustomerResponse(customer);
     }
 
@@ -70,6 +100,10 @@ public class CustomerService {
 
     public Customer findByEmail(String email) {
         return customerRepository.findByEmail(email).orElse(null);
+    }
+
+    public Customer findById(Long id) {
+        return customerRepository.findById(id).orElse(null);
     }
 
 }
