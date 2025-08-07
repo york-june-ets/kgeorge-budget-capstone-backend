@@ -14,6 +14,7 @@ import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -203,6 +204,8 @@ public class TransactionService {
                     List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
                     return new TransactionResponse(transaction, allocationResponses);
                 })
+                .sorted(Comparator.comparing(TransactionResponse::getDate).reversed())
                 .collect(Collectors.toList());
     }
+
 }
