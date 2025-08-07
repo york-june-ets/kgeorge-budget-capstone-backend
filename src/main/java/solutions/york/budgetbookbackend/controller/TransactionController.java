@@ -24,8 +24,8 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(@RequestHeader("Authorization") String token) {
-        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token);
+    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false) Long accountId, @RequestParam(required = false) String transactionType, @RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate, @RequestParam(required = false) String categoryName) {
+        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, fromDate, toDate, categoryName);
         return ResponseEntity.ok(transactionResponses);
     }
 
@@ -39,11 +39,5 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         TransactionResponse transactionResponse = transactionService.archiveTransaction(id, token);
         return ResponseEntity.ok(transactionResponse);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false) Long accountId, @RequestParam(required = false) String transactionType, @RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate, @RequestParam(required = false) String categoryName) {
-        List<TransactionResponse> transactionResponses = transactionService.getTransactionsWithFilters(token, accountId, transactionType, fromDate, toDate, categoryName);
-        return ResponseEntity.ok(transactionResponses);
     }
 }

@@ -132,20 +132,6 @@ public class TransactionService {
         return new TransactionResponse(transaction, allocationResponses);
     }
 
-    public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token) {
-        Auth auth = authService.validateToken(token);
-        Customer customer = auth.getCustomer();
-        authService.validateCustomer(customer);
-        List<Transaction> transactions = transactionRepository.findByCustomer(customer);
-        return transactions.stream()
-                .filter(transaction -> !transaction.getArchived())
-                .map(transaction -> {
-                        List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
-                        return new TransactionResponse(transaction, allocationResponses);
-                })
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public TransactionResponse updateTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token , @RequestBody TransactionRequest request) {
         validateTransactionRequest(request);
@@ -193,7 +179,7 @@ public class TransactionService {
         return new TransactionResponse(transaction, allocationResponses);
     }
 
-    public List<TransactionResponse> getTransactionsWithFilters(@RequestHeader("Authorization") String token, @RequestParam(required = false)Long accountId, @RequestParam(required = false)String transactionType, @RequestParam(required = false)String fromDate, @RequestParam(required = false)String toDate, @RequestParam(required = false)String categoryName) {
+    public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false)Long accountId, @RequestParam(required = false)String transactionType, @RequestParam(required = false)String fromDate, @RequestParam(required = false)String toDate, @RequestParam(required = false)String categoryName) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
@@ -211,12 +197,27 @@ public class TransactionService {
             dateTo = LocalDate.parse(toDate);
         }
 
-        return allocationService.findTransactionsWithFilters(accountId, type, dateFrom, dateTo, categoryName)
+        Long customerId = customer.getId();
+        return allocationService.findTransactionsWithFilters(customerId, accountId, type, dateFrom, dateTo, categoryName)
                 .stream().filter(transaction -> !transaction.getArchived()).map(transaction -> {
                     List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
                     return new TransactionResponse(transaction, allocationResponses);
                 })
                 .collect(Collectors.toList());
     }
+
+//    public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token) {
+//        Auth auth = authService.validateToken(token);
+//        Customer customer = auth.getCustomer();
+//        authService.validateCustomer(customer);
+//        List<Transaction> transactions = transactionRepository.findByCustomer(customer);
+//        return transactions.stream()
+//                .filter(transaction -> !transaction.getArchived())
+//                .map(transaction -> {
+//                    List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+//                    return new TransactionResponse(transaction, allocationResponses);
+//                })
+//                .collect(Collectors.toList());
+//    }
 
 }

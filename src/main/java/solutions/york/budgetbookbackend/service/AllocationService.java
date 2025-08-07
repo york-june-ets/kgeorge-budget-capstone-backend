@@ -85,7 +85,7 @@ public class AllocationService {
 
     }
 
-    public List<Transaction> findTransactionsWithFilters(@RequestParam(required = false)Long accountId, @RequestParam(required = false)Transaction.Type transactionType, @RequestParam(required = false)LocalDate fromDate, @RequestParam(required = false)LocalDate toDate, @RequestParam(required = false)String categoryName) {
-        return allocationRepository.findTransactionsWithFilters(accountId, transactionType, fromDate, toDate, categoryName);
+    public List<Transaction> findTransactionsWithFilters(Long customerId, @RequestParam(required = false)Long accountId, @RequestParam(required = false)Transaction.Type transactionType, @RequestParam(required = false)LocalDate fromDate, @RequestParam(required = false)LocalDate toDate, @RequestParam(required = false)String categoryName) {
+        return allocationRepository.findTransactionsWithFilters(customerId, accountId, transactionType, fromDate, toDate, categoryName);
     }
 }
