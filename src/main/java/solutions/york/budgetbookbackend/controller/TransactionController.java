@@ -24,8 +24,8 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false) Long accountId, @RequestParam(required = false) String transactionType, @RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate, @RequestParam(required = false) String categoryName) {
-        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, fromDate, toDate, categoryName);
+    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false) Long accountId, @RequestParam(required = false) String transactionType, @RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate, @RequestParam(required = false) Long categoryId) {
+        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, fromDate, toDate, categoryId);
         return ResponseEntity.ok(transactionResponses);
     }
 
