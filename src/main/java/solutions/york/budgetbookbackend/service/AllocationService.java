@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
@@ -11,6 +12,7 @@ import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.AllocationRepository;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,5 +83,9 @@ public class AllocationService {
                 .map(AllocationResponse::new)
                 .collect(Collectors.toList());
 
+    }
+
+    public List<Transaction> findTransactionsWithFilters(@RequestParam(required = false)Long accountId, @RequestParam(required = false)Transaction.Type transactionType, @RequestParam(required = false)LocalDate fromDate, @RequestParam(required = false)LocalDate toDate, @RequestParam(required = false)String categoryName) {
+        return allocationRepository.findTransactionsWithFilters(accountId, transactionType, fromDate, toDate, categoryName);
     }
 }

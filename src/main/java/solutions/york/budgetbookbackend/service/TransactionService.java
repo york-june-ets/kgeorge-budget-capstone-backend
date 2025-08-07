@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
@@ -190,6 +191,32 @@ public class TransactionService {
         transactionRepository.save(transaction);
         List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(id, token);
         return new TransactionResponse(transaction, allocationResponses);
+    }
+
+    public List<TransactionResponse> getTransactionsWithFilters(@RequestHeader("Authorization") String token, @RequestParam(required = false)Long accountId, @RequestParam(required = false)String transactionType, @RequestParam(required = false)String fromDate, @RequestParam(required = false)String toDate, @RequestParam(required = false)String categoryName) {
+        Auth auth = authService.validateToken(token);
+        Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
+
+        Transaction.Type type = null;
+        if (transactionType != null) {
+            type = Transaction.Type.valueOf(transactionType);
+        }
+        LocalDate dateFrom = null;
+        if (fromDate != null) {
+            dateFrom = LocalDate.parse(fromDate);
+        }
+        LocalDate dateTo = null;
+        if (toDate != null) {
+            dateTo = LocalDate.parse(toDate);
+        }
+
+        return allocationService.findTransactionsWithFilters(accountId, type, dateFrom, dateTo, categoryName)
+                .stream().filter(transaction -> !transaction.getArchived()).map(transaction -> {
+                    List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+                    return new TransactionResponse(transaction, allocationResponses);
+                })
+                .collect(Collectors.toList());
     }
 
 }

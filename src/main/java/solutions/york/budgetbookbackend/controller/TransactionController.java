@@ -40,4 +40,10 @@ public class TransactionController {
         TransactionResponse transactionResponse = transactionService.archiveTransaction(id, token);
         return ResponseEntity.ok(transactionResponse);
     }
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResponse>> getTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false) Long accountId, @RequestParam(required = false) String transactionType, @RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate, @RequestParam(required = false) String categoryName) {
+        List<TransactionResponse> transactionResponses = transactionService.getTransactionsWithFilters(token, accountId, transactionType, fromDate, toDate, categoryName);
+        return ResponseEntity.ok(transactionResponses);
+    }
 }
