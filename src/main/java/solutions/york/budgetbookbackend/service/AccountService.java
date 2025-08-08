@@ -54,7 +54,7 @@ public class AccountService {
         }
     }
 
-    public AccountResponse createAccount(@RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
+    public AccountResponse createAccount(String token, AccountRequest request) {
         validateAccountRequest(request);
         Auth auth = authService.validateToken(token);
         Account.Type accountType = validateAccountType(request.getType());
@@ -64,7 +64,7 @@ public class AccountService {
         return new AccountResponse(account);
     }
 
-    public List<AccountResponse> getCustomerAccounts(@RequestHeader("Authorization") String token) {
+    public List<AccountResponse> getCustomerAccounts(String token) {
         Auth auth = authService.validateToken(token);
         return accountRepository.findByCustomer(auth.getCustomer()).stream()
                 .filter(account -> !account.getArchived())
@@ -72,7 +72,7 @@ public class AccountService {
                 .collect(Collectors.toList());
     }
 
-    public AccountResponse updateAccount(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody AccountRequest request) {
+    public AccountResponse updateAccount(Long id, String token, AccountRequest request) {
         validateAccountRequest(request);
         Auth auth = authService.validateToken(token);
         validateAccountType(request.getType());
@@ -84,7 +84,7 @@ public class AccountService {
         return new AccountResponse(account);
     }
 
-    public void archiveAccount(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public void archiveAccount(Long id, String token) {
         Auth auth = authService.validateToken(token);
         Account account = accountRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found"));
         validateBelongs(account, auth);

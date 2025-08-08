@@ -34,7 +34,7 @@ public class CustomerService {
         if (request.getPassword() == null || request.getPassword().isBlank()) {throw new IllegalArgumentException("Password cannot be null");}
     }
 
-    public CustomerResponse createCustomer(@RequestBody CustomerRequest request) {
+    public CustomerResponse createCustomer(CustomerRequest request) {
         validateCustomerRequest(request);
         Customer existingCustomer = findByEmail(request.getEmail());
         if (existingCustomer != null) {
@@ -66,7 +66,7 @@ public class CustomerService {
         return auth;
     }
 
-    public CustomerResponse updateCustomer(@RequestHeader("Authorization") String token, @RequestBody CustomerRequest request) {
+    public CustomerResponse updateCustomer(String token, CustomerRequest request) {
         Auth auth = validateToken(token);
         Customer customer = customerRepository.findById(auth.getCustomer().getId()).orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         customer.update(request);

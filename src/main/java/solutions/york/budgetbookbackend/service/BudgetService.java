@@ -70,7 +70,7 @@ public class BudgetService {
         }
     }
 
-    public BudgetResponse createBudget(@RequestHeader("Authorization") String token, @RequestBody BudgetRequest request) {
+    public BudgetResponse createBudget(String token, BudgetRequest request) {
         validateBudgetRequest(request);
         Auth auth = authService.validateToken(token);
         Category category = validateCategory(request.getCategory(), auth.getCustomer());
@@ -92,7 +92,7 @@ public class BudgetService {
         return new BudgetResponse(budget);
     }
 
-    public List<BudgetResponse> getCustomerBudgets(@RequestHeader("Authorization") String token) {
+    public List<BudgetResponse> getCustomerBudgets(String token) {
         Auth auth = authService.validateToken(token);
         return budgetRepository.findByCustomer(auth.getCustomer()).stream()
                 .filter(budget -> !budget.getArchived())
@@ -100,7 +100,7 @@ public class BudgetService {
                 .collect(Collectors.toList());
     }
 
-    public BudgetResponse updateBudget(@PathVariable Long id, @RequestHeader("Authorization") String token, @RequestBody BudgetRequest request) {
+    public BudgetResponse updateBudget(Long id, String token, BudgetRequest request) {
         validateBudgetRequest(request);
         Auth auth = authService.validateToken(token);
         Budget.TimePeriod timePeriod = validateBudgetTimePeriod(request.getTimePeriod());
@@ -112,7 +112,7 @@ public class BudgetService {
         return new BudgetResponse(budget);
     }
 
-    public void archiveBudget(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public void archiveBudget(Long id, String token) {
         Auth auth = authService.validateToken(token);
         Budget budget = budgetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Budget not found"));
         validateBelongs(budget, auth);

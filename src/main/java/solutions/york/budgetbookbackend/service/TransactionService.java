@@ -2,6 +2,7 @@ package solutions.york.budgetbookbackend.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +18,6 @@ import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -185,14 +185,7 @@ public class TransactionService {
         return new TransactionResponse(transaction, allocationResponses);
     }
 
-    public List<TransactionResponse> getCustomerTransactions(
-            @RequestHeader("Authorization") String token,
-            @RequestParam(required = false)Long accountId,
-            @RequestParam(required = false)String transactionType,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            @RequestParam(required = false)Long categoryId
-        ) {
+    public List<TransactionResponse> getCustomerTransactions(String token, Long accountId, String transactionType, LocalDate dateFrom, LocalDate dateTo, Long categoryId) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
@@ -214,15 +207,7 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
-    public void downloadTransactionsAsCsv(
-            @RequestHeader("Authorization") String token,
-            HttpServletResponse response,
-            @RequestParam(required = false) Long accountId,
-            @RequestParam(required = false) String transactionType,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            @RequestParam(required = false) Long categoryId
-    ) throws IOException {
+    public void downloadTransactionsAsCsv(String token, HttpServletResponse response, Long accountId, String transactionType, LocalDate dateFrom, LocalDate dateTo, Long categoryId) throws IOException {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
 

@@ -48,7 +48,7 @@ public class AuthService {
         if (customer.getArchived() == true) {throw new IllegalArgumentException("Customer is archived");}
     }
 
-    public AuthResponse authenticateCustomer(@RequestBody AuthRequest request) {
+    public AuthResponse authenticateCustomer(AuthRequest request) {
         validateAuthRequest(request);
         Customer customer = customerService.findByEmail(request.getEmail());
         validateCustomer(customer);
@@ -58,7 +58,7 @@ public class AuthService {
         return new AuthResponse(auth.getToken(), new CustomerResponse(customer));
     }
 
-    public AuthResponse startSession(@RequestHeader("Authorization") String token) {
+    public AuthResponse startSession(String token) {
         // ending current session
         Auth existingAuth = validateToken(token);
         Customer customer = existingAuth.getCustomer();
@@ -72,7 +72,7 @@ public class AuthService {
 
     }
 
-    public void endSession(@RequestHeader("Authorization") String token) {
+    public void endSession(String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }

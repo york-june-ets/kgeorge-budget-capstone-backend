@@ -77,7 +77,7 @@ public class AllocationService {
         allocationRepository.deleteByTransaction(transaction);
     }
 
-    public List<AllocationResponse> getAllocationsByTransactionId(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public List<AllocationResponse> getAllocationsByTransactionId(Long id, String token) {
         Auth auth = authService.validateToken(token);
         Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
         validateTransaction(transaction, auth.getCustomer());
