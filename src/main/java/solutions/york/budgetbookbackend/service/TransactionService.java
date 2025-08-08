@@ -1,6 +1,8 @@
 package solutions.york.budgetbookbackend.service;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +15,9 @@ import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -180,32 +185,74 @@ public class TransactionService {
         return new TransactionResponse(transaction, allocationResponses);
     }
 
-    public List<TransactionResponse> getCustomerTransactions(@RequestHeader("Authorization") String token, @RequestParam(required = false)Long accountId, @RequestParam(required = false)String transactionType, @RequestParam(required = false)String fromDate, @RequestParam(required = false)String toDate, @RequestParam(required = false)Long categoryId) {
+    public List<TransactionResponse> getCustomerTransactions(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(required = false)Long accountId,
+            @RequestParam(required = false)String transactionType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false)Long categoryId
+        ) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
 
-        Transaction.Type type = null;
-        if (transactionType != null) {
-            type = Transaction.Type.valueOf(transactionType);
-        }
-        LocalDate dateFrom = null;
-        if (fromDate != null) {
-            dateFrom = LocalDate.parse(fromDate);
-        }
-        LocalDate dateTo = null;
-        if (toDate != null) {
-            dateTo = LocalDate.parse(toDate);
-        }
-
         Long customerId = customer.getId();
-        return allocationService.findTransactionsWithFilters(customerId, accountId, type, dateFrom, dateTo, categoryId)
+        return allocationService.findTransactionsWithFilters(
+                        customerId,
+                        accountId,
+                        transactionType != null ? Transaction.Type.valueOf(transactionType) : null,
+                        dateFrom,
+                        dateTo,
+                        categoryId
+                )
                 .stream().filter(transaction -> !transaction.getArchived()).map(transaction -> {
                     List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
                     return new TransactionResponse(transaction, allocationResponses);
                 })
                 .sorted(Comparator.comparing(TransactionResponse::getDate).reversed())
                 .collect(Collectors.toList());
+    }
+
+    public void downloadTransactionsAsCsv(
+            @RequestHeader("Authorization") String token,
+            HttpServletResponse response,
+            @RequestParam(required = false) Long accountId,
+            @RequestParam(required = false) String transactionType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) Long categoryId
+    ) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
+
+        Auth auth = authService.validateToken(token);
+        Customer customer = auth.getCustomer();
+        authService.validateCustomer(customer);
+
+        PrintWriter writer = response.getWriter();
+
+        writer.println("Customer: " + customer.getFirstName() + " " + customer.getLastName());
+        writer.println();
+
+        List<TransactionResponse> transactionResponses = getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId);
+
+        writer.println("Date,Description,Account,Amount,Repeat Unit,Repeat Interval,Allocations");
+
+        for (TransactionResponse t: transactionResponses) {
+            writer.printf("%s,%s,%s,%s,%s,%s,%s%n",
+                t.getDate(),
+                t.getDescription(),
+                t.getAccount().getName(),
+                "$" + t.getAmount(),
+                t.getRepeatUnit(),
+                t.getRepeatInterval(),
+                t.getAllocations().stream().map(AllocationResponse::toString).collect(Collectors.joining(","))
+            );
+            writer.println();
+        }
+
+        writer.flush();
     }
 
 }

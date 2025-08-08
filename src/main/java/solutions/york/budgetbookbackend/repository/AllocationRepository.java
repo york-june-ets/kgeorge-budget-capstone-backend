@@ -17,15 +17,15 @@ public interface AllocationRepository extends JpaRepository<Allocation, Long> {
             "WHERE (a.transaction.customer.id = :customerId) AND " +
             "(:accountId IS NULL OR a.transaction.account.id = :accountId) AND " +
             "(:transactionType IS NULL OR a.transaction.type = :transactionType) AND " +
-            "(:fromDate IS NULL OR a.transaction.date >= :fromDate) AND " +
-            "(:toDate IS NULL OR a.transaction.date <= :toDate) AND " +
+            "(:dateFrom IS NULL OR a.transaction.date >= :dateFrom) AND " +
+            "(:dateTo IS NULL OR a.transaction.date <= :dateTo) AND " +
             "(:categoryId IS NULL OR a.category.id = :categoryId)")
     List<Transaction> findTransactionsWithFilters(
             @Param("customerId") Long customerId,
             @Param("accountId") Long accountId,
             @Param("transactionType") Transaction.Type transactionType,
-            @Param("fromDate") LocalDate fromDate,
-            @Param("toDate") LocalDate toDate,
+            @Param("dateFrom") LocalDate dateFrom,
+            @Param("dateTo") LocalDate dateTo,
             @Param("categoryId") Long categoryId
     );
 

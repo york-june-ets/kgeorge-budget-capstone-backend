@@ -1,5 +1,6 @@
 package solutions.york.budgetbookbackend.service;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +13,7 @@ import solutions.york.budgetbookbackend.model.*;
 import solutions.york.budgetbookbackend.repository.AllocationRepository;
 import solutions.york.budgetbookbackend.repository.TransactionRepository;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,7 +87,14 @@ public class AllocationService {
 
     }
 
-    public List<Transaction> findTransactionsWithFilters(Long customerId, @RequestParam(required = false)Long accountId, @RequestParam(required = false)Transaction.Type transactionType, @RequestParam(required = false)LocalDate fromDate, @RequestParam(required = false)LocalDate toDate, @RequestParam(required = false)Long categoryId) {
-        return allocationRepository.findTransactionsWithFilters(customerId, accountId, transactionType, fromDate, toDate, categoryId);
+    public List<Transaction> findTransactionsWithFilters(
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false)Long accountId,
+            @RequestParam(required = false) Transaction.Type transactionType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) Long categoryId
+        ) {
+        return allocationRepository.findTransactionsWithFilters(customerId, accountId, transactionType, dateFrom, dateTo, categoryId);
     }
 }
