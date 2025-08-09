@@ -1,8 +1,6 @@
 package solutions.york.budgetbookbackend.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import solutions.york.budgetbookbackend.dto.customer.CustomerRequest;
 import solutions.york.budgetbookbackend.dto.customer.CustomerResponse;
 import solutions.york.budgetbookbackend.model.Auth;

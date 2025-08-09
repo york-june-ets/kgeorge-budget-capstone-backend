@@ -1,7 +1,6 @@
 package solutions.york.budgetbookbackend.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
@@ -9,7 +8,6 @@ import solutions.york.budgetbookbackend.dto.transaction.TransactionResponse;
 import solutions.york.budgetbookbackend.service.TransactionService;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -32,8 +30,8 @@ public class TransactionController {
             @RequestHeader("Authorization") String token,
             @RequestParam(required = false) Long accountId,
             @RequestParam(required = false) String transactionType,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
             @RequestParam(required = false) Long categoryId
     ) {
         List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId);
@@ -58,8 +56,8 @@ public class TransactionController {
             HttpServletResponse response,
             @RequestParam(required = false) Long accountId,
             @RequestParam(required = false) String transactionType,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate  dateTo,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
             @RequestParam(required = false) Long categoryId
             ) throws IOException {
             transactionService.downloadTransactionsAsCsv(token, response, accountId, transactionType, dateFrom, dateTo, categoryId);

@@ -6,27 +6,29 @@ import org.springframework.data.repository.query.Param;
 import solutions.york.budgetbookbackend.model.Allocation;
 import solutions.york.budgetbookbackend.model.Transaction;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface AllocationRepository extends JpaRepository<Allocation, Long> {
     void deleteByTransaction(Transaction transaction);
     List<Allocation> findByTransaction(Transaction transaction);
 
-    @Query("SELECT a.transaction FROM Allocation a " +
-            "WHERE (a.transaction.customer.id = :customerId) AND " +
-            "(:accountId IS NULL OR a.transaction.account.id = :accountId) AND " +
-            "(:transactionType IS NULL OR a.transaction.type = :transactionType) AND " +
-            "(:dateFrom IS NULL OR a.transaction.date >= :dateFrom) AND " +
-            "(:dateTo IS NULL OR a.transaction.date <= :dateTo) AND " +
-            "(:categoryId IS NULL OR a.category.id = :categoryId)")
+    @Query(value = """
+        SELECT DISTINCT t.* FROM allocation a
+        JOIN transaction t ON a.transaction_id = t.id
+        WHERE t.customer_id = :customerId
+        AND (:accountId IS NULL OR t.account_id = :accountId)
+        AND (:transactionType IS NULL OR t.type = CAST(:transactionType AS VARCHAR))
+        AND (:dateFrom IS NULL OR t.date >= CAST(:dateFrom AS DATE))
+        AND (:dateTo IS NULL OR t.date <= CAST(:dateTo AS DATE))
+        AND (:categoryId IS NULL OR a.category_id = :categoryId)
+    """, nativeQuery = true)
     List<Transaction> findTransactionsWithFilters(
-            @Param("customerId") Long customerId,
-            @Param("accountId") Long accountId,
-            @Param("transactionType") Transaction.Type transactionType,
-            @Param("dateFrom") LocalDate dateFrom,
-            @Param("dateTo") LocalDate dateTo,
-            @Param("categoryId") Long categoryId
+        @Param("customerId") Long customerId,
+        @Param("accountId") Long accountId,
+        @Param("transactionType") String transactionType,
+        @Param("dateFrom") String dateFrom,
+        @Param("dateTo") String dateTo,
+        @Param("categoryId") Long categoryId
     );
 
 }

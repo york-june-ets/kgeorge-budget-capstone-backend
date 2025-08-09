@@ -3,12 +3,7 @@ package solutions.york.budgetbookbackend.service;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
@@ -22,6 +17,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 @Service
 public class TransactionService {
@@ -40,7 +36,7 @@ public class TransactionService {
 
     }
 
-    public void validateTransactionRequest(@RequestBody TransactionRequest request) {
+    public void validateTransactionRequest(TransactionRequest request) {
         if (request == null) {throw new IllegalArgumentException("Request cannot be null");}
         if (request.getAmount() == null || request.getAmount().isBlank()) {throw new IllegalArgumentException("Amount cannot be null");}
         if (request.getDescription() == null || request.getDescription().isBlank()) {throw new IllegalArgumentException("Description cannot be null");}
@@ -106,7 +102,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionResponse createTransaction(@RequestHeader("Authorization") String token, @RequestBody TransactionRequest request) {
+    public TransactionResponse createTransaction(String token, TransactionRequest request) {
         validateTransactionRequest(request);
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
@@ -124,7 +120,7 @@ public class TransactionService {
         if (transactionType == Transaction.Type.WITHDRAWAL) {
             if (request.getAllocations().length > 0) {
                 for(AllocationRequest allocationRequest : request.getAllocations()) {
-                    AllocationResponse allocationResponse = allocationService.createAllocation(customer,transaction, allocationRequest);
+                    allocationService.createAllocation(customer,transaction, allocationRequest);
                 }
             }
         } else {
@@ -139,7 +135,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionResponse updateTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token , @RequestBody TransactionRequest request) {
+    public TransactionResponse updateTransaction(Long id, String token , TransactionRequest request) {
         validateTransactionRequest(request);
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
@@ -174,7 +170,7 @@ public class TransactionService {
 
     }
 
-    public TransactionResponse archiveTransaction(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public TransactionResponse archiveTransaction(Long id, String token) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
@@ -185,18 +181,39 @@ public class TransactionService {
         return new TransactionResponse(transaction, allocationResponses);
     }
 
-    public List<TransactionResponse> getCustomerTransactions(String token, Long accountId, String transactionType, LocalDate dateFrom, LocalDate dateTo, Long categoryId) {
+    public boolean validateDateNoThrow(String date) {
+        if (date == null || date.isBlank()) {return false;}
+        try {
+            LocalDate.parse(date);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public boolean validateTypeNoThrow(String type) {
+        if (type == null || type.isBlank()) {return false;}
+        try {
+            Transaction.Type.valueOf(type);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public List<TransactionResponse> getCustomerTransactions(String token, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
 
         Long customerId = customer.getId();
+
         return allocationService.findTransactionsWithFilters(
                         customerId,
                         accountId,
-                        transactionType != null ? Transaction.Type.valueOf(transactionType) : null,
-                        dateFrom,
-                        dateTo,
+                        validateTypeNoThrow(transactionType) ? transactionType : null,
+                        validateDateNoThrow(dateFrom) ? dateFrom : null,
+                        validateDateNoThrow(dateTo) ? dateTo : null,
                         categoryId
                 )
                 .stream().filter(transaction -> !transaction.getArchived()).map(transaction -> {
@@ -207,7 +224,7 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
-    public void downloadTransactionsAsCsv(String token, HttpServletResponse response, Long accountId, String transactionType, LocalDate dateFrom, LocalDate dateTo, Long categoryId) throws IOException {
+    public void downloadTransactionsAsCsv(String token, HttpServletResponse response, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId) throws IOException {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
 
