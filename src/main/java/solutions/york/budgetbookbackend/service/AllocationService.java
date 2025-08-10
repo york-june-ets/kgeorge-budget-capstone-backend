@@ -1,5 +1,7 @@
 package solutions.york.budgetbookbackend.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
@@ -78,10 +80,5 @@ public class AllocationService {
         return allocationRepository.findByTransaction(transaction).stream()
                 .map(AllocationResponse::new)
                 .collect(Collectors.toList());
-
-    }
-
-    public List<Transaction> findTransactionsWithFilters(Long customerId, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId) {
-        return allocationRepository.findTransactionsWithFilters(customerId, accountId, transactionType, dateFrom, dateTo, categoryId);
     }
 }

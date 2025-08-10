@@ -1,6 +1,7 @@
 package solutions.york.budgetbookbackend.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solutions.york.budgetbookbackend.dto.transaction.TransactionRequest;
@@ -26,15 +27,16 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getCustomerTransactions(
+    public ResponseEntity<Page<TransactionResponse>> getCustomerTransactions(
             @RequestHeader("Authorization") String token,
             @RequestParam(required = false) Long accountId,
             @RequestParam(required = false) String transactionType,
             @RequestParam(required = false) String dateFrom,
             @RequestParam(required = false) String dateTo,
-            @RequestParam(required = false) Long categoryId
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Integer page
     ) {
-        List<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId);
+        Page<TransactionResponse> transactionResponses = transactionService.getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId, page);
         return ResponseEntity.ok(transactionResponses);
     }
 
@@ -58,8 +60,9 @@ public class TransactionController {
             @RequestParam(required = false) String transactionType,
             @RequestParam(required = false) String dateFrom,
             @RequestParam(required = false) String dateTo,
-            @RequestParam(required = false) Long categoryId
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Integer page
             ) throws IOException {
-            transactionService.downloadTransactionsAsCsv(token, response, accountId, transactionType, dateFrom, dateTo, categoryId);
+            transactionService.downloadTransactionsAsCsv(token, response, accountId, transactionType, dateFrom, dateTo, categoryId, page);
     }
 }

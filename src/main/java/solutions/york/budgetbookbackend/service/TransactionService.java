@@ -3,6 +3,9 @@ package solutions.york.budgetbookbackend.service;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
@@ -14,23 +17,19 @@ import solutions.york.budgetbookbackend.repository.TransactionRepository;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Date;
 
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AuthService authService;
-    private final CategoryService categoryService;
     private final AccountService accountService;
     private final AllocationService allocationService;
 
     public TransactionService(TransactionRepository transactionRepository, AuthService authService, CategoryService categoryService, AccountService accountService, AllocationService allocationService) {
         this.transactionRepository = transactionRepository;
         this.authService = authService;
-        this.categoryService = categoryService;
         this.accountService = accountService;
         this.allocationService = allocationService;
 
@@ -201,30 +200,31 @@ public class TransactionService {
         }
     }
 
-    public List<TransactionResponse> getCustomerTransactions(String token, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId) {
+    public Page<TransactionResponse> getCustomerTransactions(String token, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId, Integer page) {
         Auth auth = authService.validateToken(token);
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
 
         Long customerId = customer.getId();
 
-        return allocationService.findTransactionsWithFilters(
-                        customerId,
-                        accountId,
-                        validateTypeNoThrow(transactionType) ? transactionType : null,
-                        validateDateNoThrow(dateFrom) ? dateFrom : null,
-                        validateDateNoThrow(dateTo) ? dateTo : null,
-                        categoryId
-                )
-                .stream().filter(transaction -> !transaction.getArchived()).map(transaction -> {
-                    List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
-                    return new TransactionResponse(transaction, allocationResponses);
-                })
-                .sorted(Comparator.comparing(TransactionResponse::getDate).reversed())
-                .collect(Collectors.toList());
+        Pageable pageable = page != null ? PageRequest.of(page, 8) : Pageable.unpaged();
+
+        return transactionRepository.findTransactionsWithFilters(
+            customerId,
+            accountId,
+            validateTypeNoThrow(transactionType) ? transactionType : null,
+            validateDateNoThrow(dateFrom) ? dateFrom : null,
+            validateDateNoThrow(dateTo) ? dateTo : null,
+            categoryId,
+            pageable
+        )
+        .map(transaction -> {
+            List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+            return new TransactionResponse(transaction, allocationResponses);
+        });
     }
 
-    public void downloadTransactionsAsCsv(String token, HttpServletResponse response, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId) throws IOException {
+    public void downloadTransactionsAsCsv(String token, HttpServletResponse response, Long accountId, String transactionType, String dateFrom, String dateTo, Long categoryId, Integer page) throws IOException {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
 
@@ -237,15 +237,16 @@ public class TransactionService {
         writer.println("Customer: " + customer.getFirstName() + " " + customer.getLastName());
         writer.println();
 
-        List<TransactionResponse> transactionResponses = getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId);
+        Page<TransactionResponse> transactionResponses = getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId, page);
 
-        writer.println("Date,Description,Account,Amount,Repeat Unit,Repeat Interval,Allocations");
+        writer.println("Date,Description,Account,TransactionType,Amount,Repeat Unit,Repeat Interval,Allocations");
 
         for (TransactionResponse t: transactionResponses) {
-            writer.printf("%s,%s,%s,%s,%s,%s,%s%n",
+            writer.printf("%s,%s,%s,%s,%s,%s,%s,%s%n",
                 t.getDate(),
                 t.getDescription(),
                 t.getAccount().getName(),
+                t.getTransactionType(),
                 "$" + t.getAmount(),
                 t.getRepeatUnit(),
                 t.getRepeatInterval(),
