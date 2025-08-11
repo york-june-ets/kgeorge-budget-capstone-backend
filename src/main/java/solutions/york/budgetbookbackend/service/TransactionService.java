@@ -207,7 +207,7 @@ public class TransactionService {
 
         Long customerId = customer.getId();
 
-        Pageable pageable = page != null ? PageRequest.of(page, 8) : Pageable.unpaged();
+        Pageable pageable = page != null ? PageRequest.of(page, 10) : Pageable.unpaged();
 
         return transactionRepository.findTransactionsWithFilters(
             customerId,
@@ -232,12 +232,9 @@ public class TransactionService {
         Customer customer = auth.getCustomer();
         authService.validateCustomer(customer);
 
+        List<TransactionResponse> transactionResponses = getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId, page).getContent();
+
         PrintWriter writer = response.getWriter();
-
-        writer.println("Customer: " + customer.getFirstName() + " " + customer.getLastName());
-        writer.println();
-
-        Page<TransactionResponse> transactionResponses = getCustomerTransactions(token, accountId, transactionType, dateFrom, dateTo, categoryId, page);
 
         writer.println("Date,Description,Account,TransactionType,Amount,Repeat Unit,Repeat Interval,Allocations");
 
@@ -248,11 +245,14 @@ public class TransactionService {
                 t.getAccount().getName(),
                 t.getTransactionType(),
                 "$" + t.getAmount(),
+                "[" + t.getAllocations()
+                        .stream()
+                        .map(a -> a.getCategory() + ": " + a.getAmount())
+                        .collect(Collectors.joining(", ")) +
+                "]",
                 t.getRepeatUnit(),
-                t.getRepeatInterval(),
-                t.getAllocations().stream().map(AllocationResponse::toString).collect(Collectors.joining(","))
+                t.getRepeatInterval()
             );
-            writer.println();
         }
 
         writer.flush();
