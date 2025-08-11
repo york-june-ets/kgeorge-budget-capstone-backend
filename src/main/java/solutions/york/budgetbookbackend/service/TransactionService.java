@@ -236,7 +236,7 @@ public class TransactionService {
 
         PrintWriter writer = response.getWriter();
 
-        writer.println("Date,Description,Account,TransactionType,Amount,Repeat Unit,Repeat Interval,Allocations");
+        writer.println("Date,Description,Account,TransactionType,Amount,Allocations,Repeat Unit,Repeat Interval");
 
         for (TransactionResponse t: transactionResponses) {
             writer.printf("%s,%s,%s,%s,%s,%s,%s,%s%n",
