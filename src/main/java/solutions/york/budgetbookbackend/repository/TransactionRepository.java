@@ -8,8 +8,22 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import solutions.york.budgetbookbackend.model.Transaction;
 
+import java.util.List;
+
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+
+    @Query(value =
+        """
+        SELECT t FROM Transaction t
+            WHERE t.archived = false
+            AND t.repeat_unit IS NOT NULL 
+            AND t.repeat_interval IS NOT NULL 
+            AND t.date <= CAST(:date AS DATE)
+        """,
+    nativeQuery = true)
+    List<Transaction> findActiveRecurringTransactionsBeforeDate(@Param("date") String date);
+
     @Query(value =
         """
         SELECT * FROM (

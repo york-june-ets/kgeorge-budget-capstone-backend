@@ -81,4 +81,8 @@ public class AllocationService {
                 .map(AllocationResponse::new)
                 .collect(Collectors.toList());
     }
+
+    public List<Allocation> findByTransaction(Transaction transaction) {
+        return allocationRepository.findByTransaction(transaction);
+    }
 }

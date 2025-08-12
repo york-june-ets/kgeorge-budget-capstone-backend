@@ -54,6 +54,18 @@ public class Transaction {
         this.repeatInterval = repeatInterval;
         this.archived = false;
     }
+    // for scheduled recurrence generation
+    public Transaction(Transaction transaction) {
+        this.customer = transaction.getCustomer();
+        this.account = transaction.getAccount();
+        this.description = transaction.getDescription();
+        this.date = LocalDate.now();
+        this.amount = transaction.getAmount();
+        this.type = transaction.getType();
+        this.repeatUnit = transaction.getRepeatUnit();
+        this.repeatInterval = transaction.getRepeatInterval();
+        this.archived = false;
+    }
     public void update(Account account, LocalDate date, String description, double amount, Type type, Integer repeatInterval, RepeatUnit repeatUnit) {
         this.account = account;
         this.date = date;

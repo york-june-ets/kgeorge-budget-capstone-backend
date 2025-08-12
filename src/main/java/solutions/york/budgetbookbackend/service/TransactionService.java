@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationRequest;
 import solutions.york.budgetbookbackend.dto.allocation.AllocationResponse;
@@ -17,6 +18,8 @@ import solutions.york.budgetbookbackend.repository.TransactionRepository;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +35,6 @@ public class TransactionService {
         this.authService = authService;
         this.accountService = accountService;
         this.allocationService = allocationService;
-
     }
 
     public void validateTransactionRequest(TransactionRequest request) {
@@ -99,6 +101,71 @@ public class TransactionService {
             throw new IllegalArgumentException("Date is not a valid date");
         }
     }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    public void createRecurringTransaction() {
+        System.out.println("Creating recurring transactions");
+        LocalDate today = LocalDate.now();
+        List<Transaction> recurringTransactions = transactionRepository.findActiveRecurringTransactionsBeforeDate(today.toString());
+
+        for (Transaction transaction : recurringTransactions) {
+            LocalDate startDate = transaction.getDate();
+            LocalDate nextDate = startDate;
+
+            Transaction.RepeatUnit unit = transaction.getRepeatUnit();
+            int interval = transaction.getRepeatInterval();
+
+            if (startDate.isAfter(today)) {
+                continue;
+            }
+
+            while (!nextDate.isAfter(today)) {
+                if (nextDate.equals(today)) {
+                    createRecurringTransaction(transaction);
+
+                    break;
+                }
+                switch (unit) {
+                    case DAY:
+                        nextDate = nextDate.plusDays(interval);
+                        break;
+                    case WEEK:
+                        nextDate = nextDate.plusWeeks(interval);
+                        break;
+                    case MONTH:
+                        nextDate = nextDate.plusMonths(interval);
+                        break;
+                    case YEAR:
+                        nextDate = nextDate.plusYears(interval);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown repeat unit");
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void createRecurringTransaction(Transaction transaction) {
+        Transaction recurringTransaction = new Transaction(transaction);
+        transactionRepository.save(recurringTransaction);
+
+        List<Allocation> allocations = allocationService.findByTransaction(transaction);
+        if (transaction.getType() == Transaction.Type.WITHDRAWAL) {
+            if (allocations.size() > 0) {
+                for(Allocation allocation : allocations) {
+                    allocationService.createAllocation(recurringTransaction.getCustomer(),recurringTransaction, new AllocationRequest(allocation));
+                }
+            }
+        } else {
+            if (allocations.size() > 0) {
+                throw new IllegalArgumentException("Allocations are not supported for deposit transactions");
+            }
+        }
+
+        accountService.updateBalance(recurringTransaction.getAccount(), recurringTransaction);
+    }
+
 
     @Transactional
     public TransactionResponse createTransaction(String token, TransactionRequest request) {
@@ -219,7 +286,13 @@ public class TransactionService {
             pageable
         )
         .map(transaction -> {
-            List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+            Long id = transaction.getId();
+            if (id < 0) {
+                int intId = id.intValue();
+                intId = (intId / 10000) * -1;
+                id = Long.valueOf(intId);
+            }
+            List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(id, token);
             return new TransactionResponse(transaction, allocationResponses);
         });
     }
