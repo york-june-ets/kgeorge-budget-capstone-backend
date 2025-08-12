@@ -15,10 +15,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query(value =
         """
-        SELECT t FROM Transaction t
+        SELECT t.* FROM transaction t
             WHERE t.archived = false
-            AND t.repeat_unit IS NOT NULL 
-            AND t.repeat_interval IS NOT NULL 
+            AND t.repeat_unit IS NOT NULL
+            AND t.repeat_interval IS NOT NULL
+            AND t.parent_id IS NULL
             AND t.date <= CAST(:date AS DATE)
         """,
     nativeQuery = true)
@@ -37,7 +38,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                 t.repeat_unit,
                 t.repeat_interval,
                 t.archived,
-                t.customer_id
+                t.customer_id,
+                t.parent_id
             FROM transaction t
             LEFT JOIN allocation a ON a.transaction_id = t.id
             WHERE t.customer_id = :customerId
@@ -60,7 +62,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                 t.repeat_unit,
                 t.repeat_interval,
                 t.archived,
-                t.customer_id
+                t.customer_id,
+                t.parent_id
             FROM transaction t
             JOIN generate_series(
                 CAST(:dateFrom AS DATE),

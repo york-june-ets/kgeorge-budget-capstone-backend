@@ -42,6 +42,9 @@ public class Transaction {
     @Column(nullable = false)
     private Boolean archived;
 
+    @Column(nullable = true)
+    private Long parentId;
+
     public Transaction() {}
     public Transaction(Customer customer, Account account, LocalDate date, String description, double amount, Type type, RepeatUnit repeatUnit, Integer repeatInterval) {
         this.customer = customer;
@@ -53,6 +56,7 @@ public class Transaction {
         this.repeatUnit = repeatUnit;
         this.repeatInterval = repeatInterval;
         this.archived = false;
+        this.parentId = null;
     }
     // for scheduled recurrence generation
     public Transaction(Transaction transaction) {
@@ -65,6 +69,7 @@ public class Transaction {
         this.repeatUnit = transaction.getRepeatUnit();
         this.repeatInterval = transaction.getRepeatInterval();
         this.archived = false;
+        this.parentId = transaction.getId();
     }
     public void update(Account account, LocalDate date, String description, double amount, Type type, Integer repeatInterval, RepeatUnit repeatUnit) {
         this.account = account;
@@ -108,6 +113,9 @@ public class Transaction {
     public Boolean getArchived() {
         return archived;
     }
+    public Long getParentId() {
+        return parentId;
+    }
 
     // SETTERS
     public void setId(Long id) {
@@ -140,5 +148,9 @@ public class Transaction {
     public void setArchived(boolean archived) {
         this.archived = archived;
     }
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
 
 }

@@ -104,9 +104,8 @@ public class TransactionService {
 
     @Scheduled(cron = "0 0 3 * * *")
     public void createRecurringTransaction() {
-        System.out.println("Creating recurring transactions");
         LocalDate today = LocalDate.now();
-        List<Transaction> recurringTransactions = transactionRepository.findActiveRecurringTransactionsBeforeDate(today.toString());
+        List<Transaction> recurringTransactions = transactionRepository.findActiveRecurringTransactionsBeforeDate(today.toString() );
 
         for (Transaction transaction : recurringTransactions) {
             LocalDate startDate = transaction.getDate();
@@ -214,9 +213,11 @@ public class TransactionService {
         LocalDate date = validateDate(request.getDate());
 
         Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+
         accountService.removePreviousBalance(transaction.getAccount(), transaction);
         transaction.update(account, date, request.getDescription(), amount, transactionType, repeatInterval, repeatUnit);
         transactionRepository.save(transaction);
+
         allocationService.deleteAllocations(transaction);
         if (transactionType == Transaction.Type.WITHDRAWAL) {
             if (request.getAllocations().length > 0) {
