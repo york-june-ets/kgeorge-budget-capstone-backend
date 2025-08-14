@@ -58,6 +58,19 @@ public class Transaction {
         this.archived = false;
         this.parentId = null;
     }
+    //non-scheduled recurrence
+    public Transaction(Customer customer, Account account, LocalDate date, String description, double amount, Type type, RepeatUnit repeatUnit, Integer repeatInterval, Long parentId) {
+        this.customer = customer;
+        this.account = account;
+        this.description = description;
+        this.date = date;
+        this.amount = amount;
+        this.type = type;
+        this.repeatUnit = repeatUnit;
+        this.repeatInterval = repeatInterval;
+        this.archived = false;
+        this.parentId = parentId;
+    }
     // for scheduled recurrence generation
     public Transaction(Transaction transaction) {
         this.customer = transaction.getCustomer();

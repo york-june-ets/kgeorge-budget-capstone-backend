@@ -69,7 +69,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                 CAST(:dateFrom AS DATE),
                 CAST(:dateTo AS DATE),
                 (t.repeat_interval || ' ' || t.repeat_unit)::interval
-            ) AS future_date(date) ON future_date.date > t.date
+            ) AS future_date(date) ON future_date.date > CURRENT_DATE
             LEFT JOIN allocation a ON a.transaction_id = t.id
             WHERE t.repeat_unit IS NOT NULL
             AND t.repeat_interval IS NOT NULL
@@ -78,6 +78,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             AND (:accountId IS NULL OR t.account_id = :accountId)
             AND (:transactionType IS NULL OR t.type = CAST(:transactionType AS VARCHAR))
             AND (:categoryId IS NULL OR a.category_id = :categoryId)
+            AND t.parent_id IS NULL
         ) AS transaction
     
         ORDER BY transaction.date DESC, transaction.id DESC
@@ -104,13 +105,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                 CAST(:dateFrom AS DATE),
                 CAST(:dateTo AS DATE),
                 (t.repeat_interval || ' ' || t.repeat_unit)::interval
-            ) AS future_date(date) ON future_date.date > t.date
+            ) AS future_date(date) ON future_date.date > CURRENT_DATE
             WHERE t.repeat_unit IS NOT NULL
             AND t.repeat_interval IS NOT NULL
             AND t.customer_id = :customerId
             AND t.archived = false
             AND (:accountId IS NULL OR t.account_id = :accountId)
             AND (:transactionType IS NULL OR t.type = CAST(:transactionType AS VARCHAR))
+            AND t.parent_id IS NULL
         ) AS transaction
         """,
     nativeQuery = true)

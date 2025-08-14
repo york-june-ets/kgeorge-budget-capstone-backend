@@ -174,12 +174,12 @@ public class TransactionService {
         authService.validateCustomer(customer);
         Account account = validateAccount(request.getAccountId(), auth.getCustomer());
         Transaction.Type transactionType = validateTransactionType(request.getTransactionType());
-        Transaction.RepeatUnit repeatUnit = validateRepeatUnit(request.getRepeatUnit());
-        Integer repeatInterval = validateRepeatInterval(request.getRepeatInterval());
+        Transaction.RepeatUnit unit = validateRepeatUnit(request.getRepeatUnit());
+        Integer interval = validateRepeatInterval(request.getRepeatInterval());
         double amount = validateAmount(request.getAmount());
         LocalDate date = validateDate(request.getDate());
 
-        Transaction transaction = new Transaction(customer, account, date, request.getDescription(), amount, transactionType, repeatUnit, repeatInterval);
+        Transaction transaction = new Transaction(customer, account, date, request.getDescription(), amount, transactionType, unit, interval);
         transactionRepository.save(transaction);
 
         if (transactionType == Transaction.Type.WITHDRAWAL) {
@@ -196,6 +196,48 @@ public class TransactionService {
 
         accountService.updateBalance(account, transaction);
         List<AllocationResponse> allocationResponses = allocationService.getAllocationsByTransactionId(transaction.getId(), token);
+
+        LocalDate today = LocalDate.now();
+        if (unit != null && interval != null && date.isBefore(today)) {
+            LocalDate nextDate = date;
+            Long parentId = transaction.getId();
+
+            while (!nextDate.isAfter(today)) {
+                if (!nextDate.equals(date)) {
+                    Transaction recurrence = new Transaction(customer, account, nextDate, request.getDescription(), amount, transactionType, unit, interval, parentId);
+                    transactionRepository.save(recurrence);
+
+                    if (transactionType == Transaction.Type.WITHDRAWAL) {
+                        if (request.getAllocations().length > 0) {
+                            for(AllocationRequest allocationRequest : request.getAllocations()) {
+                                allocationService.createAllocation(customer,recurrence, allocationRequest);
+                            }
+                        }
+                    } else {
+                        if (request.getAllocations().length > 0) {
+                            throw new IllegalArgumentException("Allocations are not supported for deposit transactions");
+                        }
+                    }
+                }
+                switch (unit) {
+                    case DAY:
+                        nextDate = nextDate.plusDays(interval);
+                        break;
+                    case WEEK:
+                        nextDate = nextDate.plusWeeks(interval);
+                        break;
+                    case MONTH:
+                        nextDate = nextDate.plusMonths(interval);
+                        break;
+                    case YEAR:
+                        nextDate = nextDate.plusYears(interval);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown repeat unit");
+                }
+            }
+        }
+
         return new TransactionResponse(transaction, allocationResponses);
     }
 
