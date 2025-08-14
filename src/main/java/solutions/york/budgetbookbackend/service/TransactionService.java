@@ -102,7 +102,7 @@ public class TransactionService {
         }
     }
 
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void createRecurringTransaction() {
         LocalDate today = LocalDate.now();
         List<Transaction> recurringTransactions = transactionRepository.findActiveRecurringTransactionsBeforeDate(today.toString() );
