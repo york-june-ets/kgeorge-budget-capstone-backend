@@ -48,8 +48,11 @@ public class AuthService {
     public AuthResponse authenticateCustomer(AuthRequest request) {
         validateAuthRequest(request);
         Customer customer = customerService.findByEmail(request.getEmail());
+        if (customer == null) {
+            throw new IllegalArgumentException("Email not found");
+        }
         validateCustomer(customer);
-        if (!customer.getPassword().equals(request.getPassword())) {throw new IllegalArgumentException("Invalid credentials");}
+        if (!customer.getPassword().equals(request.getPassword())) {throw new IllegalArgumentException("Invalid password");}
         Auth auth = new Auth(UUID.randomUUID().toString(), customer);
         authRepository.save(auth);
         return new AuthResponse(auth.getToken(), new CustomerResponse(customer));
